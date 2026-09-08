@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-09-08",
+  "courses": [
+    {
+      "id": "react-esencial",
+      "slug": "react-esencial",
+      "title": "React Esencial: De Cero a Componentes",
+      "description": "Domina la librería de interfaces más popular del mundo. Aprende JSX, componentes funcionales, props y gestión de estado reactivo moderno con useState.",
+      "category": "frontend",
+      "level": "Principiante",
+      "duration": "4 Horas",
+      "icon": "fa-brands fa-react",
+      "badgeColor": "cyan",
+      "totalLessons": 3,
+      "tags": ["React", "JavaScript", "JSX", "Frontend", "UI"]
+    },
+    {
+      "id": "nodejs-backend",
+      "slug": "nodejs-backend",
+      "title": "Node.js Fundamentos: JavaScript en el Servidor",
+      "description": "Descubre cómo ejecutar JavaScript fuera del navegador. Conoce el Event Loop, el sistema de módulos ES6 / CommonJS y el ecosistema de paquetes npm.",
+      "category": "backend",
+      "level": "Principiante - Intermedio",
+      "duration": "3 Horas",
+      "icon": "fa-brands fa-node-js",
+      "badgeColor": "mint",
+      "totalLessons": 2,
+      "tags": ["Node.js", "Backend", "JavaScript", "NPM", "Event Loop"]
+    },
+    {
+      "id": "express-api-rest",
+      "slug": "express-api-rest",
+      "title": "Creación de APIs REST con Express",
+      "description": "Aprende a estructurar servicios web y APIs robustas con Express. Manejo de métodos HTTP, middlewares de seguridad, parámetros de ruta y respuestas JSON.",
+      "category": "api",
+      "level": "Intermedio",
+      "duration": "3.5 Horas",
+      "icon": "fa-solid fa-server",
+      "badgeColor": "orange",
+      "totalLessons": 2,
+      "tags": ["Express", "API REST", "Node.js", "HTTP", "JSON"]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "react-esencial",
+  "slug": "react-esencial",
+  "title": "React Esencial: De Cero a Componentes",
+  "description": "Domina la librería de interfaces más popular del mundo. Aprende JSX, componentes funcionales, props y gestión de estado reactivo moderno con useState.",
+  "category": "frontend",
+  "level": "Principiante",
+  "duration": "4 Horas",
+  "icon": "fa-brands fa-react",
+  "badgeColor": "cyan",
+  "author": "EduXP Community",
+  "modules": [
+    {
+      "id": "mod-1",
+      "title": "Fundamentos y Primeros Pasos",
+      "lessons": [
+        {
+          "id": "01-bienvenida-react",
+          "title": "1. ¿Qué es React y por qué usarlo?",
+          "file": "lessons/01-bienvenida-react.md",
+          "duration": "10 min",
+          "xp": 50
+        },
+        {
+          "id": "02-componentes-y-jsx",
+          "title": "2. Sintaxis JSX y Creación de Componentes",
+          "file": "lessons/02-componentes-y-jsx.md",
+          "duration": "15 min",
+          "xp": 75
+        }
+      ]
+    },
+    {
+      "id": "mod-2",
+      "title": "Interactividad y Hooks",
+      "lessons": [
+        {
+          "id": "03-estados-con-usestate",
+          "title": "3. Estado Reactivo con useState y Eventos",
+          "file": "lessons/03-estados-con-usestate.md",
+          "duration": "20 min",
+          "xp": 100
+        }
+      ]
+    }
+  ]
+}

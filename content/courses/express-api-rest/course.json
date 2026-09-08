@@ -1,0 +1,34 @@
+{
+  "id": "express-api-rest",
+  "slug": "express-api-rest",
+  "title": "Creación de APIs REST con Express",
+  "description": "Aprende a estructurar servicios web y APIs robustas con Express. Manejo de métodos HTTP, middlewares de seguridad, parámetros de ruta y respuestas JSON.",
+  "category": "api",
+  "level": "Intermedio",
+  "duration": "3.5 Horas",
+  "icon": "fa-solid fa-server",
+  "badgeColor": "orange",
+  "author": "EduXP Community",
+  "modules": [
+    {
+      "id": "mod-express-1",
+      "title": "Arquitectura de un Servidor Express",
+      "lessons": [
+        {
+          "id": "01-primeros-pasos-express",
+          "title": "1. Servidor HTTP básico y Respuestas JSON",
+          "file": "lessons/01-primeros-pasos-express.md",
+          "duration": "15 min",
+          "xp": 70
+        },
+        {
+          "id": "02-rutas-y-middlewares",
+          "title": "2. Parámetros de Ruta y el Patrón Middleware",
+          "file": "lessons/02-rutas-y-middlewares.md",
+          "duration": "20 min",
+          "xp": 90
+        }
+      ]
+    }
+  ]
+}
