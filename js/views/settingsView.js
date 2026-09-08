@@ -1,120 +1,140 @@
 /**
  * EduXP - Vista de Configuración (Settings / Fuentes de Datos)
+ * Implementación 100% nativa de JavaScript DOM sin innerHTML
  */
 
 import { configManager } from '../config.js';
 import { store } from '../store.js';
+import { el, clearElement, icon } from '../utils/dom.js';
 
 export function renderSettings(container) {
+  clearElement(container);
+
   const currentConfig = configManager.config;
-
-  container.innerHTML = `
-    <div class="container-narrow">
-      <div class="section-header">
-        <div>
-          <h1 class="section-title"><i class="fa-solid fa-sliders text-mint"></i> Fuentes de Contenido & Repositorio</h1>
-          <p class="section-desc">Conecta cualquier repositorio público de GitHub con cursos en Markdown o usa el contenido local.</p>
-        </div>
-      </div>
-
-      <!-- Selector de Origen -->
-      <div class="settings-box">
-        <h3><i class="fa-solid fa-database text-mint"></i> Origen de los Cursos</h3>
-        <p>Elige de dónde debe cargar EduXP los cursos, temarios y archivos .md:</p>
-
-        <div class="source-options">
-          <div class="source-card ${currentConfig.sourceType === 'local' ? 'active' : ''}" id="source-local-card">
-            <div class="source-card-title">
-              <span><i class="fa-solid fa-hard-drive"></i> Contenido Local / Demo</span>
-              ${currentConfig.sourceType === 'local' ? '<i class="fa-solid fa-circle-check text-mint"></i>' : ''}
-            </div>
-            <div class="source-card-desc">
-              Carga los cursos incluidos dentro de la carpeta <code>./content/</code> del proyecto. Ideal para pruebas locales o despliegues integrados.
-            </div>
-          </div>
-
-          <div class="source-card ${currentConfig.sourceType === 'github' ? 'active' : ''}" id="source-github-card">
-            <div class="source-card-title">
-              <span><i class="fa-brands fa-github"></i> Repositorio Remoto en GitHub</span>
-              ${currentConfig.sourceType === 'github' ? '<i class="fa-solid fa-circle-check text-mint"></i>' : ''}
-            </div>
-            <div class="source-card-desc">
-              Consume el contenido directamente desde un repositorio público en GitHub mediante jsDelivr CDN de alta velocidad.
-            </div>
-          </div>
-        </div>
-
-        <!-- Formulario de Configuración GitHub -->
-        <div id="github-form-fields" style="display: ${currentConfig.sourceType === 'github' ? 'block' : 'none'}; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
-          <h4 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1rem;">
-            <i class="fa-solid fa-gear text-cyan"></i> Parámetros del Repositorio de GitHub
-          </h4>
-          
-          <div class="form-group">
-            <label class="form-label" for="gh-owner">Usuario u Organización de GitHub</label>
-            <input type="text" id="gh-owner" class="form-input" value="${currentConfig.github.owner || ''}" placeholder="ej. usuario-github">
-            <div class="form-help">El nombre de usuario o la organización dueña del repositorio.</div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="gh-repo">Nombre del Repositorio</label>
-            <input type="text" id="gh-repo" class="form-input" value="${currentConfig.github.repo || ''}" placeholder="ej. mis-cursos-eduxp">
-            <div class="form-help">El repositorio que contiene la estructura con <code>courses.json</code> y la carpeta <code>courses/</code>.</div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="gh-branch">Rama (Branch)</label>
-            <input type="text" id="gh-branch" class="form-input" value="${currentConfig.github.branch || 'main'}" placeholder="main">
-            <div class="form-help">Por lo general <code>main</code> o <code>master</code>.</div>
-          </div>
-
-          <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem;">
-            <input type="checkbox" id="gh-use-cdn" ${currentConfig.github.useCdn ? 'checked' : ''}>
-            <label for="gh-use-cdn" style="font-size: 0.875rem; color: var(--text-muted); cursor: pointer;">
-              Usar CDN jsDelivr (Recomendado: Evita rate limits de la API de GitHub y mejora la velocidad)
-            </label>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
-          <button class="btn btn-primary" id="save-config-btn">
-            <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración
-          </button>
-          <button class="btn btn-secondary" id="test-connection-btn">
-            <i class="fa-solid fa-network-wired"></i> Probar Conexión
-          </button>
-          <button class="btn btn-ghost" id="reset-config-btn">
-            <i class="fa-solid fa-rotate-left"></i> Restaurar Valores por Defecto
-          </button>
-        </div>
-
-        <div id="connection-status-message" style="margin-top: 1rem;"></div>
-      </div>
-
-      <!-- Zona de Progreso del Usuario -->
-      <div class="settings-box">
-        <h3><i class="fa-solid fa-user-clock text-cyan"></i> Progreso de Aprendizaje</h3>
-        <p>Tu progreso se almacena localmente en tu navegador para proteger tu privacidad. Si deseas reiniciar todas las lecciones completadas para empezar desde cero, puedes hacerlo aquí.</p>
-        
-        <button class="btn btn-secondary" id="clear-progress-btn" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);">
-          <i class="fa-solid fa-trash-can"></i> Reiniciar Todo Mi Progreso
-        </button>
-      </div>
-    </div>
-  `;
-
-  // Controladores de interfaz
-  const localCard = container.querySelector('#source-local-card');
-  const githubCard = container.querySelector('#source-github-card');
-  const githubFields = container.querySelector('#github-form-fields');
-  const saveBtn = container.querySelector('#save-config-btn');
-  const testBtn = container.querySelector('#test-connection-btn');
-  const resetBtn = container.querySelector('#reset-config-btn');
-  const clearProgressBtn = container.querySelector('#clear-progress-btn');
-  const statusMsg = container.querySelector('#connection-status-message');
-
   let selectedSource = currentConfig.sourceType;
 
+  // Campos de formulario GitHub
+  const ownerInput = el('input', {
+    type: 'text',
+    id: 'gh-owner',
+    className: 'form-input',
+    value: currentConfig.github.owner || '',
+    placeholder: 'ej. usuario-github'
+  });
+
+  const repoInput = el('input', {
+    type: 'text',
+    id: 'gh-repo',
+    className: 'form-input',
+    value: currentConfig.github.repo || '',
+    placeholder: 'ej. mis-cursos-eduxp'
+  });
+
+  const branchInput = el('input', {
+    type: 'text',
+    id: 'gh-branch',
+    className: 'form-input',
+    value: currentConfig.github.branch || 'main',
+    placeholder: 'main'
+  });
+
+  const cdnCheckbox = el('input', {
+    type: 'checkbox',
+    id: 'gh-use-cdn',
+    checked: currentConfig.github.useCdn
+  });
+
+  const githubFields = el('div', {
+    id: 'github-form-fields',
+    style: {
+      display: currentConfig.sourceType === 'github' ? 'block' : 'none',
+      borderTop: '1px solid var(--border-subtle)',
+      paddingTop: '1.5rem'
+    }
+  },
+    el('h4', { style: { marginBottom: '1rem', color: 'var(--text-main)', fontSize: '1rem' } },
+      icon('fa-solid fa-gear', 'text-cyan'),
+      ' Parámetros del Repositorio de GitHub'
+    ),
+    el('div', { className: 'form-group' },
+      el('label', { className: 'form-label', htmlFor: 'gh-owner', textContent: 'Usuario u Organización de GitHub' }),
+      ownerInput,
+      el('div', { className: 'form-help', textContent: 'El nombre de usuario o la organización dueña del repositorio.' })
+    ),
+    el('div', { className: 'form-group' },
+      el('label', { className: 'form-label', htmlFor: 'gh-repo', textContent: 'Nombre del Repositorio' }),
+      repoInput,
+      el('div', { className: 'form-help', textContent: 'El repositorio que contiene courses.json y la carpeta courses/.' })
+    ),
+    el('div', { className: 'form-group' },
+      el('label', { className: 'form-label', htmlFor: 'gh-branch', textContent: 'Rama (Branch)' }),
+      branchInput,
+      el('div', { className: 'form-help', textContent: 'Por lo general main o master.' })
+    ),
+    el('div', { className: 'form-group', style: { display: 'flex', alignItems: 'center', gap: '0.75rem' } },
+      cdnCheckbox,
+      el('label', {
+        htmlFor: 'gh-use-cdn',
+        style: { fontSize: '0.875rem', color: 'var(--text-muted)', cursor: 'pointer' },
+        textContent: 'Usar CDN jsDelivr (Recomendado: Evita rate limits y bloqueos CORS)'
+      })
+    )
+  );
+
+  // Tarjetas de Selección de Origen
+  const localCard = el('div', {
+    className: `source-card ${selectedSource === 'local' ? 'active' : ''}`,
+    id: 'source-local-card'
+  },
+    el('div', { className: 'source-card-title' },
+      el('span', {}, icon('fa-solid fa-hard-drive'), ' Contenido Local / Demo')
+    ),
+    el('div', {
+      className: 'source-card-desc',
+      textContent: 'Carga los cursos incluidos dentro de la carpeta ./content/ del proyecto. Ideal para pruebas locales.'
+    })
+  );
+
+  const githubCard = el('div', {
+    className: `source-card ${selectedSource === 'github' ? 'active' : ''}`,
+    id: 'source-github-card'
+  },
+    el('div', { className: 'source-card-title' },
+      el('span', {}, icon('fa-brands fa-github'), ' Repositorio Remoto en GitHub')
+    ),
+    el('div', {
+      className: 'source-card-desc',
+      textContent: 'Consume el contenido directamente desde un repositorio público en GitHub mediante jsDelivr CDN.'
+    })
+  );
+
+  const statusMsg = el('div', { id: 'connection-status-message', style: { marginTop: '1rem' } });
+
+  // Botones de acción
+  const saveBtn = el('button', { className: 'btn btn-primary' },
+    icon('fa-solid fa-floppy-disk'),
+    ' Guardar Configuración'
+  );
+
+  const testBtn = el('button', { className: 'btn btn-secondary' },
+    icon('fa-solid fa-network-wired'),
+    ' Probar Conexión'
+  );
+
+  const resetBtn = el('button', { className: 'btn btn-ghost' },
+    icon('fa-solid fa-rotate-left'),
+    ' Restaurar Valores por Defecto'
+  );
+
+  const clearProgressBtn = el('button', {
+    className: 'btn btn-secondary',
+    style: { color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.3)' }
+  },
+    icon('fa-solid fa-trash-can'),
+    ' Reiniciar Todo Mi Progreso'
+  );
+
+  // Manejadores de Eventos
   localCard.addEventListener('click', () => {
     selectedSource = 'local';
     localCard.classList.add('active');
@@ -130,36 +150,47 @@ export function renderSettings(container) {
   });
 
   saveBtn.addEventListener('click', () => {
-    const owner = container.querySelector('#gh-owner').value.trim();
-    const repo = container.querySelector('#gh-repo').value.trim();
-    const branch = container.querySelector('#gh-branch').value.trim() || 'main';
-    const useCdn = container.querySelector('#gh-use-cdn').checked;
+    const owner = ownerInput.value.trim();
+    const repo = repoInput.value.trim();
+    const branch = branchInput.value.trim() || 'main';
+    const useCdn = cdnCheckbox.checked;
 
     configManager.saveConfig({
       sourceType: selectedSource,
       github: { owner, repo, branch, useCdn }
     });
 
-    statusMsg.innerHTML = `<span class="text-mint"><i class="fa-solid fa-check"></i> ¡Configuración guardada exitosamente!</span>`;
-    setTimeout(() => { statusMsg.innerHTML = ''; }, 3000);
+    clearElement(statusMsg);
+    statusMsg.appendChild(
+      el('span', { className: 'text-mint' }, icon('fa-solid fa-check'), ' ¡Configuración guardada exitosamente!')
+    );
+    setTimeout(() => { clearElement(statusMsg); }, 3000);
   });
 
   testBtn.addEventListener('click', async () => {
-    statusMsg.innerHTML = `<span class="text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Comprobando acceso a courses.json...</span>`;
-    
-    // Guardar temporalmente para probar
-    const owner = container.querySelector('#gh-owner').value.trim();
-    const repo = container.querySelector('#gh-repo').value.trim();
-    const branch = container.querySelector('#gh-branch').value.trim() || 'main';
-    const useCdn = container.querySelector('#gh-use-cdn').checked;
+    clearElement(statusMsg);
+    statusMsg.appendChild(
+      el('span', { className: 'text-muted' }, icon('fa-solid fa-spinner fa-spin'), ' Comprobando acceso a courses.json...')
+    );
+
+    const owner = ownerInput.value.trim();
+    const repo = repoInput.value.trim();
+    const branch = branchInput.value.trim() || 'main';
+    const useCdn = cdnCheckbox.checked;
 
     let testUrl = './content/courses.json';
     if (selectedSource === 'github') {
       if (!owner || !repo) {
-        statusMsg.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Debes ingresar el Usuario y el Nombre del repositorio de GitHub.</span>`;
+        clearElement(statusMsg);
+        statusMsg.appendChild(
+          el('span', { className: 'text-danger' },
+            icon('fa-solid fa-circle-xmark'),
+            ' Debes ingresar el Usuario y el Nombre del repositorio de GitHub.'
+          )
+        );
         return;
       }
-      testUrl = useCdn 
+      testUrl = useCdn
         ? `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/courses.json`
         : `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/courses.json`;
     }
@@ -169,9 +200,21 @@ export function renderSettings(container) {
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       const count = (data.courses || []).length;
-      statusMsg.innerHTML = `<span class="text-mint"><i class="fa-solid fa-circle-check"></i> Conexión exitosa. Se detectaron ${count} cursos disponibles en la fuente.</span>`;
+      clearElement(statusMsg);
+      statusMsg.appendChild(
+        el('span', { className: 'text-mint' },
+          icon('fa-solid fa-circle-check'),
+          ` Conexión exitosa. Se detectaron ${count} cursos disponibles en la fuente.`
+        )
+      );
     } catch (err) {
-      statusMsg.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Error de conexión: No se pudo leer courses.json (${err.message}). Verifica que el repositorio sea público y el archivo exista.</span>`;
+      clearElement(statusMsg);
+      statusMsg.appendChild(
+        el('span', { className: 'text-danger' },
+          icon('fa-solid fa-circle-xmark'),
+          ` Error de conexión: No se pudo leer courses.json (${err.message}). Verifica que el repositorio sea público.`
+        )
+      );
     }
   });
 
@@ -188,4 +231,43 @@ export function renderSettings(container) {
       alert('Se ha reiniciado tu progreso.');
     }
   });
+
+  // Ensamblar Vista
+  const view = el('div', { className: 'container-narrow' },
+    el('div', { className: 'section-header' },
+      el('div', {},
+        el('h1', { className: 'section-title' },
+          icon('fa-solid fa-sliders', 'text-mint'),
+          ' Fuentes de Contenido & Repositorio'
+        ),
+        el('p', {
+          className: 'section-desc',
+          textContent: 'Conecta cualquier repositorio público de GitHub con cursos en Markdown o usa el contenido local.'
+        })
+      )
+    ),
+
+    el('div', { className: 'settings-box' },
+      el('h3', {}, icon('fa-solid fa-database', 'text-mint'), ' Origen de los Cursos'),
+      el('p', { textContent: 'Elige de dónde debe cargar EduXP los cursos, temarios y archivos .md:' }),
+      el('div', { className: 'source-options' }, localCard, githubCard),
+      githubFields,
+      el('div', { style: { display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' } },
+        saveBtn,
+        testBtn,
+        resetBtn
+      ),
+      statusMsg
+    ),
+
+    el('div', { className: 'settings-box' },
+      el('h3', {}, icon('fa-solid fa-user-clock', 'text-cyan'), ' Progreso de Aprendizaje'),
+      el('p', {
+        textContent: 'Tu progreso se almacena localmente en tu navegador para proteger tu privacidad. Si deseas reiniciar todas las lecciones completadas para empezar desde cero, puedes hacerlo aquí.'
+      }),
+      clearProgressBtn
+    )
+  );
+
+  container.appendChild(view);
 }

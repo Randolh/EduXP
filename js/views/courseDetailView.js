@@ -1,17 +1,20 @@
 /**
  * EduXP - Vista de Detalle de Curso (Course Detail / Syllabus)
+ * Construcción declarativa 100% nativa con la API del DOM (Buenas prácticas: sin innerHTML)
  */
 
 import { api } from '../api.js';
 import { store } from '../store.js';
+import { el, clearElement, icon, createLoader } from '../utils/dom.js';
 
 export async function renderCourseDetail(container, courseSlug) {
-  container.innerHTML = `<div class="app-loader"><div class="loader-spinner"></div></div>`;
+  clearElement(container);
+  container.appendChild(createLoader('Cargando temario del curso...'));
 
   try {
     const course = await api.getCourse(courseSlug);
-    
-    // Contar total de lecciones
+
+    // Contar total de lecciones y encontrar lección objetivo
     let totalLessonsCount = 0;
     let firstLesson = null;
     let nextUncompletedLesson = null;
@@ -28,138 +31,174 @@ export async function renderCourseDetail(container, courseSlug) {
 
     const stats = store.getCourseStats(courseSlug, totalLessonsCount);
     const lastVisited = store.getLastVisited(courseSlug);
-    
-    // Determinar la lección a la que enviar al hacer click en el CTA principal
-    const targetLesson = lastVisited 
+
+    const targetLesson = lastVisited
       ? findLessonById(course.modules, lastVisited) || nextUncompletedLesson || firstLesson
       : nextUncompletedLesson || firstLesson;
 
     const badgeTheme = course.badgeColor || 'mint';
-    const iconClass = course.icon || 'fa-solid fa-code';
 
-    container.innerHTML = `
-      <!-- Cabecera del Curso -->
-      <section class="course-detail-header">
-        <div class="course-header-grid">
-          <div class="course-info-col">
-            <a href="#/courses" class="btn btn-ghost btn-sm" style="margin-bottom: 0.5rem; padding-left: 0;">
-              <i class="fa-solid fa-arrow-left"></i> Volver al Catálogo
-            </a>
-            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem;">
-              <span class="badge badge-${badgeTheme}">${course.level || 'Todos los niveles'}</span>
-              <span class="badge badge-cyan">${course.category || 'Desarrollo'}</span>
-            </div>
-            <h1>${course.title}</h1>
-            <p class="course-full-desc">${course.description}</p>
-            <div class="course-meta-pills">
-              <div class="meta-pill">
-                <i class="fa-regular fa-clock text-mint"></i>
-                <span>${course.duration || 'Flexible'}</span>
-              </div>
-              <div class="meta-pill">
-                <i class="fa-solid fa-book-open text-cyan"></i>
-                <span>${course.modules.length} Módulos • ${totalLessonsCount} Lecciones</span>
-              </div>
-              <div class="meta-pill">
-                <i class="fa-brands fa-markdown text-mint"></i>
-                <span>Lecciones en Markdown</span>
-              </div>
-            </div>
-          </div>
+    // 1. Cabecera del Curso
+    const headerSection = el('section', { className: 'course-detail-header' },
+      el('div', { className: 'course-header-grid' },
+        // Columna de información
+        el('div', { className: 'course-info-col' },
+          el('a', {
+            href: '#/courses',
+            className: 'btn btn-ghost btn-sm',
+            style: { marginBottom: '0.5rem', paddingLeft: '0' }
+          },
+            icon('fa-solid fa-arrow-left'),
+            ' Volver al Catálogo'
+          ),
+          el('div', { style: { display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' } },
+            el('span', { className: `badge badge-${badgeTheme}`, textContent: course.level || 'Todos los niveles' }),
+            el('span', { className: 'badge badge-cyan', textContent: course.category || 'Desarrollo' })
+          ),
+          el('h1', { textContent: course.title }),
+          el('p', { className: 'course-full-desc', textContent: course.description }),
+          el('div', { className: 'course-meta-pills' },
+            el('div', { className: 'meta-pill' },
+              icon('fa-regular fa-clock', 'text-mint'),
+              el('span', { textContent: course.duration || 'Flexible' })
+            ),
+            el('div', { className: 'meta-pill' },
+              icon('fa-solid fa-book-open', 'text-cyan'),
+              el('span', { textContent: `${course.modules.length} Módulos • ${totalLessonsCount} Lecciones` })
+            ),
+            el('div', { className: 'meta-pill' },
+              icon('fa-brands fa-markdown', 'text-mint'),
+              el('span', { textContent: 'Lecciones en Markdown' })
+            )
+          )
+        ),
 
-          <!-- Tarjeta de Acción / Progreso -->
-          <div class="course-cta-card">
-            <div class="cta-progress-box">
-              <div class="progress-text-row" style="margin-top: 0; margin-bottom: 0.5rem;">
-                <span style="color: var(--text-main); font-weight: 700;">Tu Avance</span>
-                <span class="text-mint">${stats.percentage}%</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill" style="width: ${stats.percentage}%;"></div>
-              </div>
-              <p style="font-size: 0.775rem; color: var(--text-dim); margin-top: 0.5rem;">
-                ${stats.completed} de ${totalLessonsCount} lecciones completadas
-              </p>
-            </div>
+        // Tarjeta de Acción / Progreso
+        el('div', { className: 'course-cta-card' },
+          el('div', { className: 'cta-progress-box' },
+            el('div', { className: 'progress-text-row', style: { marginTop: '0', marginBottom: '0.5rem' } },
+              el('span', { style: { color: 'var(--text-main)', fontWeight: '700' }, textContent: 'Tu Avance' }),
+              el('span', { className: 'text-mint', textContent: `${stats.percentage}%` })
+            ),
+            el('div', { className: 'progress-track' },
+              el('div', { className: 'progress-fill', style: { width: `${stats.percentage}%` } })
+            ),
+            el('p', {
+              style: { fontSize: '0.775rem', color: 'var(--text-dim)', marginTop: '0.5rem' },
+              textContent: `${stats.completed} de ${totalLessonsCount} lecciones completadas`
+            })
+          ),
 
-            ${targetLesson ? `
-              <a href="#/course/${courseSlug}/lesson/${targetLesson.id}" class="btn btn-primary btn-block btn-lg">
-                <i class="fa-solid fa-play"></i> ${stats.completed > 0 ? 'Continuar Lección' : 'Comenzar Ahora'}
-              </a>
-              <p style="font-size: 0.75rem; color: var(--text-dim); text-align: center; margin-top: 0.5rem;">
-                Próxima: <strong>${targetLesson.title}</strong>
-              </p>
-            ` : `
-              <p class="text-mint" style="text-align: center; font-weight: 600;">
-                <i class="fa-solid fa-circle-check"></i> ¡Has completado este curso!
-              </p>
-            `}
-          </div>
-        </div>
-      </section>
+          targetLesson
+            ? el('div', {},
+                el('a', {
+                  href: `#/course/${courseSlug}/lesson/${targetLesson.id}`,
+                  className: 'btn btn-primary btn-block btn-lg'
+                },
+                  icon('fa-solid fa-play'),
+                  ` ${stats.completed > 0 ? 'Continuar Lección' : 'Comenzar Ahora'}`
+                ),
+                el('p', {
+                  style: { fontSize: '0.75rem', color: 'var(--text-dim)', textAlign: 'center', marginTop: '0.5rem' }
+                },
+                  'Próxima: ',
+                  el('strong', { textContent: targetLesson.title })
+                )
+              )
+            : el('p', {
+                className: 'text-mint',
+                style: { textAlign: 'center', fontWeight: '600' }
+              },
+                icon('fa-solid fa-circle-check'),
+                ' ¡Has completado este curso!'
+              )
+        )
+      )
+    );
 
-      <!-- Temario Detallado (Syllabus) -->
-      <section class="syllabus-container">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title"><i class="fa-solid fa-list-ol text-mint"></i> Contenido del Curso</h2>
-            <p class="section-desc">Explora las lecciones y temas cubiertos en cada módulo.</p>
-          </div>
-        </div>
+    // 2. Sección del Temario (Syllabus)
+    const syllabusSection = el('section', { className: 'syllabus-container' },
+      el('div', { className: 'section-header' },
+        el('div', {},
+          el('h2', { className: 'section-title' },
+            icon('fa-solid fa-list-ol', 'text-mint'),
+            ' Contenido del Curso'
+          ),
+          el('p', { className: 'section-desc', textContent: 'Explora las lecciones y temas cubiertos en cada módulo.' })
+        )
+      ),
+      el('div', { className: 'modules-accordion' },
+        course.modules.map((mod, modIdx) => createModuleCard(courseSlug, mod, modIdx))
+      )
+    );
 
-        <div class="modules-accordion">
-          ${course.modules.map((mod, modIdx) => renderModuleCard(courseSlug, mod, modIdx)).join('')}
-        </div>
-      </section>
-    `;
+    // Reemplazar hijos de forma atómica y segura
+    clearElement(container);
+    container.append(headerSection, syllabusSection);
+
   } catch (err) {
-    container.innerHTML = `
-      <div class="container">
-        <div class="settings-box">
-          <h2 class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar el curso</h2>
-          <p>${err.message}</p>
-          <a href="#/courses" class="btn btn-primary btn-sm">Regresar al catálogo</a>
-        </div>
-      </div>
-    `;
+    clearElement(container);
+    container.appendChild(
+      el('div', { className: 'container' },
+        el('div', { className: 'settings-box' },
+          el('h2', { className: 'text-danger' },
+            icon('fa-solid fa-triangle-exclamation'),
+            ' Error al cargar el curso'
+          ),
+          el('p', { textContent: err.message }),
+          el('a', { href: '#/courses', className: 'btn btn-primary btn-sm' }, 'Regresar al catálogo')
+        )
+      )
+    );
   }
 }
 
-function renderModuleCard(courseSlug, mod, modIdx) {
-  return `
-    <div class="module-card">
-      <div class="module-header">
-        <div class="module-title">
-          <span style="color: var(--mint-primary); font-size: 0.85rem; font-family: var(--font-mono);">MOD ${modIdx + 1}</span>
-          <span>${mod.title}</span>
-        </div>
-        <span class="module-counter">${mod.lessons.length} lecciones</span>
-      </div>
-      <ul class="lessons-list">
-        ${mod.lessons.map(lesson => {
-          const isCompleted = store.isLessonCompleted(courseSlug, lesson.id);
-          return `
-            <li class="lesson-item-row">
-              <div class="lesson-main-info">
-                <div class="lesson-status-icon ${isCompleted ? 'completed' : ''}" title="${isCompleted ? 'Lección completada' : 'Pendiente'}">
-                  <i class="fa-solid ${isCompleted ? 'fa-check' : 'fa-play'}"></i>
-                </div>
-                <a href="#/course/${courseSlug}/lesson/${lesson.id}" class="lesson-title-link">
-                  ${lesson.title}
-                </a>
-              </div>
-              <div class="lesson-item-meta">
-                <span><i class="fa-regular fa-clock"></i> ${lesson.duration || '10 min'}</span>
-                <a href="#/course/${courseSlug}/lesson/${lesson.id}" class="btn btn-ghost btn-sm" title="Ir a la lección">
-                  <i class="fa-solid fa-chevron-right"></i>
-                </a>
-              </div>
-            </li>
-          `;
-        }).join('')}
-      </ul>
-    </div>
-  `;
+function createModuleCard(courseSlug, mod, modIdx) {
+  return el('div', { className: 'module-card' },
+    el('div', { className: 'module-header' },
+      el('div', { className: 'module-title' },
+        el('span', {
+          style: { color: 'var(--mint-primary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' },
+          textContent: `MOD ${modIdx + 1}`
+        }),
+        el('span', { textContent: mod.title })
+      ),
+      el('span', { className: 'module-counter', textContent: `${mod.lessons.length} lecciones` })
+    ),
+    el('ul', { className: 'lessons-list' },
+      mod.lessons.map(lesson => {
+        const isCompleted = store.isLessonCompleted(courseSlug, lesson.id);
+        return el('li', { className: 'lesson-item-row' },
+          el('div', { className: 'lesson-main-info' },
+            el('div', {
+              className: `lesson-status-icon ${isCompleted ? 'completed' : ''}`,
+              title: isCompleted ? 'Lección completada' : 'Pendiente'
+            },
+              icon(`fa-solid ${isCompleted ? 'fa-check' : 'fa-play'}`)
+            ),
+            el('a', {
+              href: `#/course/${courseSlug}/lesson/${lesson.id}`,
+              className: 'lesson-title-link',
+              textContent: lesson.title
+            })
+          ),
+          el('div', { className: 'lesson-item-meta' },
+            el('span', {},
+              icon('fa-regular fa-clock'),
+              ` ${lesson.duration || '10 min'}`
+            ),
+            el('a', {
+              href: `#/course/${courseSlug}/lesson/${lesson.id}`,
+              className: 'btn btn-ghost btn-sm',
+              title: 'Ir a la lección'
+            },
+              icon('fa-solid fa-chevron-right')
+            )
+          )
+        );
+      })
+    )
+  );
 }
 
 function findLessonById(modules, lessonId) {

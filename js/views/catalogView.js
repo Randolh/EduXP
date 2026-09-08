@@ -1,61 +1,82 @@
 /**
  * EduXP - Vista de Catálogo de Cursos (Catalog)
+ * Construida con métodos nativos del DOM de JavaScript (sin innerHTML)
  */
 
 import { api } from '../api.js';
-import { store } from '../store.js';
+import { createCourseCard } from './homeView.js';
+import { el, clearElement, icon, createLoader } from '../utils/dom.js';
 
 export async function renderCatalog(container, queryParams = {}) {
-  container.innerHTML = `
-    <div class="container">
-      <div class="section-header">
-        <div>
-          <h1 class="section-title"><i class="fa-solid fa-graduation-cap text-mint"></i> Catálogo de Cursos</h1>
-          <p class="section-desc">Selecciona el curso que deseas aprender. Todo el material es gratuito y abierto.</p>
-        </div>
-      </div>
+  clearElement(container);
 
-      <!-- Barra de Filtros y Búsqueda -->
-      <div class="catalog-toolbar">
-        <div class="search-box-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="course-search-input" class="search-input" placeholder="Buscar por tema, tecnología o palabra clave (ej. React, Hooks, Express, API)...">
-        </div>
-        
-        <div class="filter-chips" id="filter-chips">
-          <button class="chip-btn active" data-category="all">Todos</button>
-          <button class="chip-btn" data-category="frontend">Frontend</button>
-          <button class="chip-btn" data-category="backend">Backend</button>
-          <button class="chip-btn" data-category="api">APIs & Servicios</button>
-        </div>
-      </div>
+  const searchInput = el('input', {
+    type: 'text',
+    id: 'course-search-input',
+    className: 'search-input',
+    placeholder: 'Buscar por tema, tecnología o palabra clave (ej. React, Hooks, Express, API)...'
+  });
 
-      <!-- Grid de Cursos -->
-      <div class="course-grid" id="catalog-grid">
-        <div class="app-loader"><div class="loader-spinner"></div></div>
-      </div>
-    </div>
-  `;
+  const categories = [
+    { id: 'all', label: 'Todos' },
+    { id: 'frontend', label: 'Frontend' },
+    { id: 'backend', label: 'Backend' },
+    { id: 'api', label: 'APIs & Servicios' }
+  ];
+
+  const chipButtons = categories.map(cat => {
+    const isActive = (queryParams.category || 'all').toLowerCase() === cat.id;
+    return el('button', {
+      className: `chip-btn ${isActive ? 'active' : ''}`,
+      dataset: { category: cat.id },
+      textContent: cat.label
+    });
+  });
+
+  const grid = el('div', { className: 'course-grid', id: 'catalog-grid' },
+    createLoader('Cargando catálogo...')
+  );
+
+  const catalogView = el('div', { className: 'container' },
+    el('div', { className: 'section-header' },
+      el('div', {},
+        el('h1', { className: 'section-title' },
+          icon('fa-solid fa-graduation-cap', 'text-mint'),
+          ' Catálogo de Cursos'
+        ),
+        el('p', {
+          className: 'section-desc',
+          textContent: 'Selecciona el curso que deseas aprender. Todo el material es gratuito y abierto.'
+        })
+      )
+    ),
+
+    // Barra de Búsqueda y Filtros
+    el('div', { className: 'catalog-toolbar' },
+      el('div', { className: 'search-box-wrap' },
+        icon('fa-solid fa-magnifying-glass', 'search-icon'),
+        searchInput
+      ),
+      el('div', { className: 'filter-chips', id: 'filter-chips' }, chipButtons)
+    ),
+
+    grid
+  );
+
+  container.appendChild(catalogView);
 
   try {
     const allCourses = await api.getCourses();
-    const grid = container.querySelector('#catalog-grid');
-    const searchInput = container.querySelector('#course-search-input');
-    const chipBtns = container.querySelectorAll('.chip-btn');
 
     let currentCategory = queryParams.category || 'all';
     let currentSearch = '';
 
-    // Si viene categoría en los parámetros de la URL, activar el chip correspondiente
-    if (queryParams.category) {
-      chipBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.category === queryParams.category);
-      });
-    }
-
     function filterAndRender() {
+      clearElement(grid);
+
       const filtered = allCourses.filter(course => {
-        const matchesCategory = currentCategory === 'all' || (course.category && course.category.toLowerCase() === currentCategory.toLowerCase());
+        const matchesCategory = currentCategory === 'all' ||
+          (course.category && course.category.toLowerCase() === currentCategory.toLowerCase());
         const searchLower = currentSearch.toLowerCase();
         const matchesSearch = !currentSearch ||
           course.title.toLowerCase().includes(searchLower) ||
@@ -66,23 +87,31 @@ export async function renderCatalog(container, queryParams = {}) {
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `
-          <div class="settings-box" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-            <i class="fa-solid fa-folder-open text-muted" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
-            <h3>No se encontraron cursos</h3>
-            <p>Intenta con otros términos de búsqueda o cambia el filtro de categoría.</p>
-          </div>
-        `;
+        grid.appendChild(
+          el('div', {
+            className: 'settings-box',
+            style: { gridColumn: '1 / -1', textAlign: 'center', padding: '3rem' }
+          },
+            el('i', {
+              className: 'fa-solid fa-folder-open text-muted',
+              style: { fontSize: '2.5rem', marginBottom: '1rem', display: 'block' }
+            }),
+            el('h3', { textContent: 'No se encontraron cursos' }),
+            el('p', { textContent: 'Intenta con otros términos de búsqueda o cambia el filtro de categoría.' })
+          )
+        );
         return;
       }
 
-      grid.innerHTML = filtered.map(course => renderCatalogCard(course)).join('');
+      filtered.forEach(course => {
+        grid.appendChild(createCourseCard(course));
+      });
     }
 
-    // Eventos de filtro
-    chipBtns.forEach(btn => {
+    // Eventos de categorías
+    chipButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        chipBtns.forEach(b => b.classList.remove('active'));
+        chipButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentCategory = btn.dataset.category;
         filterAndRender();
@@ -96,58 +125,17 @@ export async function renderCatalog(container, queryParams = {}) {
     });
 
     filterAndRender();
+
   } catch (err) {
-    const grid = container.querySelector('#catalog-grid');
-    grid.innerHTML = `
-      <div class="settings-box" style="grid-column: 1 / -1;">
-        <p class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> ${err.message}</p>
-        <a href="#/settings" class="btn btn-secondary btn-sm">Revisar configuración de repositorios</a>
-      </div>
-    `;
+    clearElement(grid);
+    grid.appendChild(
+      el('div', { className: 'settings-box', style: { gridColumn: '1 / -1' } },
+        el('p', { className: 'text-danger' },
+          icon('fa-solid fa-triangle-exclamation'),
+          ` ${err.message}`
+        ),
+        el('a', { href: '#/settings', className: 'btn btn-secondary btn-sm' }, 'Revisar configuración de repositorios')
+      )
+    );
   }
-}
-
-function renderCatalogCard(course) {
-  const stats = store.getCourseStats(course.slug, course.totalLessons || 0);
-  const badgeTheme = course.badgeColor || 'mint';
-  const iconClass = course.icon || 'fa-solid fa-code';
-
-  return `
-    <article class="course-card">
-      <div class="card-header-banner">
-        <div class="card-icon-bubble">
-          <i class="${iconClass}"></i>
-        </div>
-        <span class="badge badge-${badgeTheme}">${course.level || 'General'}</span>
-      </div>
-      <div class="card-body">
-        <h3 class="card-title">${course.title}</h3>
-        <p class="card-desc">${course.description}</p>
-        
-        <div class="card-progress-bar-wrap">
-          <div class="progress-track">
-            <div class="progress-fill" style="width: ${stats.percentage}%;"></div>
-          </div>
-          <div class="progress-text-row">
-            <span>${stats.percentage}% completado</span>
-            <span>${stats.completed}/${stats.total || course.totalLessons || 0} lecciones</span>
-          </div>
-        </div>
-
-        <div class="card-meta-row">
-          <div class="card-meta-item">
-            <i class="fa-regular fa-clock"></i> ${course.duration || 'Flexible'}
-          </div>
-          <div class="card-meta-item">
-            <i class="fa-solid fa-layer-group"></i> ${course.category || 'Programación'}
-          </div>
-        </div>
-      </div>
-      <div class="card-footer-action">
-        <a href="#/course/${course.slug}" class="btn btn-primary btn-block btn-sm">
-          <i class="fa-solid fa-arrow-right"></i> Ver Temario Completo
-        </a>
-      </div>
-    </article>
-  `;
 }

@@ -1,19 +1,21 @@
 /**
  * EduXP - Vista del Visor de Lección (Lesson Viewer)
- * Renderiza el Markdown de la lección con barra lateral de navegación y controles interactivos.
+ * Implementada 100% con la API nativa de JavaScript DOM (sin innerHTML)
  */
 
 import { api } from '../api.js';
 import { store } from '../store.js';
 import { renderMarkdown, enhanceCodeBlocks } from '../utils/markdown.js';
+import { el, clearElement, icon, createLoader, parseHtmlFragment } from '../utils/dom.js';
 
 export async function renderLesson(container, courseSlug, lessonId) {
-  container.innerHTML = `<div class="app-loader"><div class="loader-spinner"></div><p class="loader-text">Cargando lección...</p></div>`;
+  clearElement(container);
+  container.appendChild(createLoader('Cargando lección...'));
 
   try {
     const course = await api.getCourse(courseSlug);
-    
-    // Aplanar todas las lecciones en orden para facilitar navegación anterior / siguiente
+
+    // Aplanar todas las lecciones en orden para facilitar navegación
     const flattenedLessons = [];
     course.modules.forEach((mod, modIdx) => {
       mod.lessons.forEach(l => {
@@ -37,179 +39,196 @@ export async function renderLesson(container, courseSlug, lessonId) {
     // Registrar como última lección visitada
     store.setLastVisited(courseSlug, lessonId);
 
-    // Obtener el contenido Markdown crudo
+    // Obtener y parsear el Markdown
     const markdownRaw = await api.getLessonMarkdown(courseSlug, currentLesson.file);
     const parsedHtml = renderMarkdown(markdownRaw);
 
     const isCompleted = store.isLessonCompleted(courseSlug, lessonId);
     const stats = store.getCourseStats(courseSlug, flattenedLessons.length);
 
-    container.innerHTML = `
-      <div class="viewer-layout">
-        <!-- Sidebar del Temario -->
-        <aside class="viewer-sidebar" id="viewer-sidebar">
-          <div class="viewer-sidebar-header">
-            <a href="#/course/${courseSlug}" class="back-to-course-link">
-              <i class="fa-solid fa-arrow-left"></i> Volver al curso
-            </a>
-            <h2 class="viewer-course-title">${course.title}</h2>
-            
-            <div class="sidebar-progress-wrap">
-              <div class="progress-track">
-                <div class="progress-fill" id="sidebar-progress-bar" style="width: ${stats.percentage}%;"></div>
-              </div>
-              <div class="progress-text-row">
-                <span id="sidebar-progress-label">${stats.percentage}% completado</span>
-                <span id="sidebar-progress-count">${stats.completed}/${stats.total}</span>
-              </div>
-            </div>
-          </div>
+    // 1. Elementos reactivos de estado en Sidebar
+    const progressBarFill = el('div', {
+      className: 'progress-fill',
+      id: 'sidebar-progress-bar',
+      style: { width: `${stats.percentage}%` }
+    });
 
-          <!-- Árbol de módulos y lecciones -->
-          <div class="viewer-modules-tree">
-            ${course.modules.map((mod, modIdx) => `
-              <div class="sidebar-module-group">
-                <div class="sidebar-module-title">Módulo ${modIdx + 1}: ${mod.title}</div>
-                ${mod.lessons.map(les => {
-                  const lesCompleted = store.isLessonCompleted(courseSlug, les.id);
-                  const isCurrent = les.id === lessonId;
-                  return `
-                    <a href="#/course/${courseSlug}/lesson/${les.id}" class="sidebar-lesson-item ${isCurrent ? 'active' : ''}" data-lesson-id="${les.id}">
-                      <div class="sidebar-lesson-icon ${lesCompleted ? 'completed' : ''}">
-                        <i class="fa-solid ${lesCompleted ? 'fa-check' : 'fa-play'}"></i>
-                      </div>
-                      <span class="sidebar-lesson-title">${les.title}</span>
-                    </a>
-                  `;
-                }).join('')}
-              </div>
-            `).join('')}
-          </div>
-        </aside>
+    const progressLabel = el('span', {
+      id: 'sidebar-progress-label',
+      textContent: `${stats.percentage}% completado`
+    });
 
-        <!-- Contenido Principal -->
-        <div class="viewer-main">
-          <!-- Top Bar con Breadcrumbs y acción de completado -->
-          <div class="viewer-top-bar">
-            <div class="viewer-breadcrumbs">
-              <a href="#/courses">Cursos</a>
-              <i class="fa-solid fa-angle-right"></i>
-              <a href="#/course/${courseSlug}">${course.title}</a>
-              <i class="fa-solid fa-angle-right"></i>
-              <span>${currentLesson.title}</span>
-            </div>
+    const progressCount = el('span', {
+      id: 'sidebar-progress-count',
+      textContent: `${stats.completed}/${stats.total}`
+    });
 
-            <div class="viewer-actions">
-              <button class="btn ${isCompleted ? 'btn-outline' : 'btn-primary'} btn-sm" id="complete-toggle-btn">
-                <i class="fa-solid ${isCompleted ? 'fa-check-circle' : 'fa-circle'}"></i>
-                <span id="complete-btn-text">${isCompleted ? 'Completada' : 'Marcar como lista'}</span>
-              </button>
-            </div>
-          </div>
+    // 2. Construir Sidebar con Módulos y Lecciones
+    const sidebar = el('aside', { className: 'viewer-sidebar', id: 'viewer-sidebar' },
+      el('div', { className: 'viewer-sidebar-header' },
+        el('a', { href: `#/course/${courseSlug}`, className: 'back-to-course-link' },
+          icon('fa-solid fa-arrow-left'),
+          ' Volver al curso'
+        ),
+        el('h2', { className: 'viewer-course-title', textContent: course.title }),
+        el('div', { className: 'sidebar-progress-wrap' },
+          el('div', { className: 'progress-track' }, progressBarFill),
+          el('div', { className: 'progress-text-row' }, progressLabel, progressCount)
+        )
+      ),
 
-          <!-- Cabecera de la Lección -->
-          <header class="viewer-header">
-            <h1 class="viewer-lesson-title">${currentLesson.title}</h1>
-            <div class="viewer-lesson-meta">
-              <span><i class="fa-regular fa-clock"></i> Tiempo estimado: ${currentLesson.duration || '10 min'}</span>
-              <span><i class="fa-solid fa-layer-group"></i> ${currentLesson.moduleTitle}</span>
-              ${currentLesson.xp ? `<span class="badge badge-mint"><i class="fa-solid fa-bolt"></i> +${currentLesson.xp} XP</span>` : ''}
-            </div>
-          </header>
+      el('div', { className: 'viewer-modules-tree' },
+        course.modules.map((mod, modIdx) =>
+          el('div', { className: 'sidebar-module-group' },
+            el('div', {
+              className: 'sidebar-module-title',
+              textContent: `Módulo ${modIdx + 1}: ${mod.title}`
+            }),
+            mod.lessons.map(les => {
+              const lesCompleted = store.isLessonCompleted(courseSlug, les.id);
+              const isCurrent = les.id === lessonId;
 
-          <!-- Cuerpo Renderizado en Markdown -->
-          <article class="markdown-body" id="markdown-container">
-            ${parsedHtml}
-          </article>
+              return el('a', {
+                href: `#/course/${courseSlug}/lesson/${les.id}`,
+                className: `sidebar-lesson-item ${isCurrent ? 'active' : ''}`,
+                dataset: { lessonId: les.id }
+              },
+                el('div', { className: `sidebar-lesson-icon ${lesCompleted ? 'completed' : ''}` },
+                  icon(`fa-solid ${lesCompleted ? 'fa-check' : 'fa-play'}`)
+                ),
+                el('span', { className: 'sidebar-lesson-title', textContent: les.title })
+              );
+            })
+          )
+        )
+      )
+    );
 
-          <!-- Navegación Inferior (Prev / Next) -->
-          <footer class="viewer-navigation-footer">
-            ${prevLesson ? `
-              <a href="#/course/${courseSlug}/lesson/${prevLesson.id}" class="nav-direction-btn prev">
-                <span class="nav-direction-label"><i class="fa-solid fa-arrow-left"></i> Lección Anterior</span>
-                <span class="nav-direction-title">${prevLesson.title}</span>
-              </a>
-            ` : '<div></div>'}
+    // 3. Botón de Completar Lección
+    const completeBtnIcon = icon(`fa-solid ${isCompleted ? 'fa-check-circle' : 'fa-circle'}`);
+    const completeBtnText = el('span', {
+      id: 'complete-btn-text',
+      textContent: isCompleted ? 'Completada' : 'Marcar como lista'
+    });
 
-            ${nextLesson ? `
-              <a href="#/course/${courseSlug}/lesson/${nextLesson.id}" class="nav-direction-btn next">
-                <span class="nav-direction-label">Siguiente Lección <i class="fa-solid fa-arrow-right"></i></span>
-                <span class="nav-direction-title">${nextLesson.title}</span>
-              </a>
-            ` : `
-              <a href="#/course/${courseSlug}" class="nav-direction-btn next">
-                <span class="nav-direction-label">Fin del curso <i class="fa-solid fa-trophy text-mint"></i></span>
-                <span class="nav-direction-title">¡Ver resumen final!</span>
-              </a>
-            `}
-          </footer>
-        </div>
-      </div>
+    const completeBtn = el('button', {
+      className: `btn ${isCompleted ? 'btn-outline' : 'btn-primary'} btn-sm`,
+      id: 'complete-toggle-btn'
+    }, completeBtnIcon, completeBtnText);
 
-      <!-- Botón flotante para móviles -->
-      <button class="sidebar-mobile-btn" id="mobile-sidebar-toggle" title="Abrir temario">
-        <i class="fa-solid fa-bars"></i>
-      </button>
-    `;
+    // 4. Contenedor de Artículo Markdown
+    const articleContainer = el('article', { className: 'markdown-body', id: 'markdown-container' });
+    articleContainer.appendChild(parseHtmlFragment(parsedHtml));
 
-    // Enriquecer bloques de código y resaltar sintaxis con Prism
-    const mdContainer = container.querySelector('#markdown-container');
-    enhanceCodeBlocks(mdContainer);
+    // 5. Navegación inferior Prev / Next
+    const prevNav = prevLesson
+      ? el('a', { href: `#/course/${courseSlug}/lesson/${prevLesson.id}`, className: 'nav-direction-btn prev' },
+          el('span', { className: 'nav-direction-label' }, icon('fa-solid fa-arrow-left'), ' Lección Anterior'),
+          el('span', { className: 'nav-direction-title', textContent: prevLesson.title })
+        )
+      : el('div');
 
-    // Configurar botón toggle completado
-    const completeBtn = container.querySelector('#complete-toggle-btn');
-    const completeBtnText = container.querySelector('#complete-btn-text');
+    const nextNav = nextLesson
+      ? el('a', { href: `#/course/${courseSlug}/lesson/${nextLesson.id}`, className: 'nav-direction-btn next' },
+          el('span', { className: 'nav-direction-label' }, 'Siguiente Lección ', icon('fa-solid fa-arrow-right')),
+          el('span', { className: 'nav-direction-title', textContent: nextLesson.title })
+        )
+      : el('a', { href: `#/course/${courseSlug}`, className: 'nav-direction-btn next' },
+          el('span', { className: 'nav-direction-label' }, 'Fin del curso ', icon('fa-solid fa-trophy', 'text-mint')),
+          el('span', { className: 'nav-direction-title', textContent: '¡Ver resumen final!' })
+        );
 
+    // 6. Contenido Principal del Visor
+    const mainContent = el('div', { className: 'viewer-main' },
+      el('div', { className: 'viewer-top-bar' },
+        el('div', { className: 'viewer-breadcrumbs' },
+          el('a', { href: '#/courses', textContent: 'Cursos' }),
+          icon('fa-solid fa-angle-right'),
+          el('a', { href: `#/course/${courseSlug}`, textContent: course.title }),
+          icon('fa-solid fa-angle-right'),
+          el('span', { textContent: currentLesson.title })
+        ),
+        el('div', { className: 'viewer-actions' }, completeBtn)
+      ),
+
+      el('header', { className: 'viewer-header' },
+        el('h1', { className: 'viewer-lesson-title', textContent: currentLesson.title }),
+        el('div', { className: 'viewer-lesson-meta' },
+          el('span', {}, icon('fa-regular fa-clock'), ` Tiempo estimado: ${currentLesson.duration || '10 min'}`),
+          el('span', {}, icon('fa-solid fa-layer-group'), ` ${currentLesson.moduleTitle}`),
+          currentLesson.xp ? el('span', { className: 'badge badge-mint' }, icon('fa-solid fa-bolt'), ` +${currentLesson.xp} XP`) : null
+        )
+      ),
+
+      articleContainer,
+
+      el('footer', { className: 'viewer-navigation-footer' }, prevNav, nextNav)
+    );
+
+    // 7. Botón móvil de sidebar
+    const mobileSidebarToggle = el('button', {
+      className: 'sidebar-mobile-btn',
+      id: 'mobile-sidebar-toggle',
+      title: 'Abrir temario'
+    }, icon('fa-solid fa-bars'));
+
+    mobileSidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('is-open');
+    });
+
+    // 8. Evento del botón de Completar
     completeBtn.addEventListener('click', () => {
       const isNowCompleted = store.toggleLessonCompleted(courseSlug, lessonId);
-      
-      // Actualizar estilo del botón
+
       completeBtn.className = `btn ${isNowCompleted ? 'btn-outline' : 'btn-primary'} btn-sm`;
-      completeBtn.querySelector('i').className = `fa-solid ${isNowCompleted ? 'fa-check-circle' : 'fa-circle'}`;
+      completeBtnIcon.className = `fa-solid ${isNowCompleted ? 'fa-check-circle' : 'fa-circle'}`;
       completeBtnText.textContent = isNowCompleted ? 'Completada' : 'Marcar como lista';
 
-      // Actualizar icono en el sidebar correspondiente
-      const sidebarItem = container.querySelector(`.sidebar-lesson-item[data-lesson-id="${lessonId}"]`);
+      // Actualizar icono en el sidebar
+      const sidebarItem = sidebar.querySelector(`.sidebar-lesson-item[data-lesson-id="${lessonId}"]`);
       if (sidebarItem) {
         const iconWrap = sidebarItem.querySelector('.sidebar-lesson-icon');
+        clearElement(iconWrap);
         if (isNowCompleted) {
-          iconWrap.classList.add('completed');
-          iconWrap.innerHTML = `<i class="fa-solid fa-check"></i>`;
+          iconWrap.className = 'sidebar-lesson-icon completed';
+          iconWrap.appendChild(icon('fa-solid fa-check'));
         } else {
-          iconWrap.classList.remove('completed');
-          iconWrap.innerHTML = `<i class="fa-solid fa-play"></i>`;
+          iconWrap.className = 'sidebar-lesson-icon';
+          iconWrap.appendChild(icon('fa-solid fa-play'));
         }
       }
 
-      // Actualizar barra de progreso del sidebar
+      // Actualizar progreso reactivo
       const updatedStats = store.getCourseStats(courseSlug, flattenedLessons.length);
-      container.querySelector('#sidebar-progress-bar').style.width = `${updatedStats.percentage}%`;
-      container.querySelector('#sidebar-progress-label').textContent = `${updatedStats.percentage}% completado`;
-      container.querySelector('#sidebar-progress-count').textContent = `${updatedStats.completed}/${updatedStats.total}`;
+      progressBarFill.style.width = `${updatedStats.percentage}%`;
+      progressLabel.textContent = `${updatedStats.percentage}% completado`;
+      progressCount.textContent = `${updatedStats.completed}/${updatedStats.total}`;
 
-      // Mostrar toast
       showToast(isNowCompleted ? '¡Lección completada! Progreso guardado.' : 'Lección desmarcada.', 'success');
     });
 
-    // Control móvil del sidebar
-    const mobileSidebarToggle = container.querySelector('#mobile-sidebar-toggle');
-    const sidebar = container.querySelector('#viewer-sidebar');
-    if (mobileSidebarToggle && sidebar) {
-      mobileSidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('is-open');
-      });
-    }
+    // Ensamblar en contenedor principal
+    clearElement(container);
+    const viewerLayout = el('div', { className: 'viewer-layout' }, sidebar, mainContent);
+    container.append(viewerLayout, mobileSidebarToggle);
+
+    // Enriquecer bloques de código con cabecera y Prism
+    enhanceCodeBlocks(articleContainer);
 
   } catch (err) {
-    container.innerHTML = `
-      <div class="container">
-        <div class="settings-box">
-          <h2 class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar la lección</h2>
-          <p>${err.message}</p>
-          <a href="#/course/${courseSlug}" class="btn btn-primary btn-sm">Regresar al temario del curso</a>
-        </div>
-      </div>
-    `;
+    clearElement(container);
+    container.appendChild(
+      el('div', { className: 'container' },
+        el('div', { className: 'settings-box' },
+          el('h2', { className: 'text-danger' },
+            icon('fa-solid fa-triangle-exclamation'),
+            ' Error al cargar la lección'
+          ),
+          el('p', { textContent: err.message }),
+          el('a', { href: `#/course/${courseSlug}`, className: 'btn btn-primary btn-sm' }, 'Regresar al temario del curso')
+        )
+      )
+    );
   }
 }
 
@@ -217,12 +236,10 @@ function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
 
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <i class="fa-solid ${type === 'success' ? 'fa-check text-mint' : 'fa-info-circle text-cyan'}"></i>
-    <span>${message}</span>
-  `;
+  const toast = el('div', { className: `toast toast-${type}` },
+    icon(type === 'success' ? 'fa-solid fa-check' : 'fa-solid fa-info-circle', type === 'success' ? 'text-mint' : 'text-cyan'),
+    el('span', { textContent: message })
+  );
 
   container.appendChild(toast);
 

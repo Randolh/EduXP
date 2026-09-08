@@ -9,6 +9,7 @@ import { renderCatalog } from './views/catalogView.js';
 import { renderCourseDetail } from './views/courseDetailView.js';
 import { renderLesson } from './views/lessonView.js';
 import { renderSettings } from './views/settingsView.js';
+import { el, clearElement, icon } from './utils/dom.js';
 
 class Router {
   constructor(routes = []) {
@@ -107,30 +108,41 @@ class Router {
   }
 
   renderNotFound(path) {
-    this.appContainer.innerHTML = `
-      <div class="container" style="text-align: center; padding: 5rem 1.5rem;">
-        <i class="fa-solid fa-compass-slash text-mint" style="font-size: 3.5rem; margin-bottom: 1.5rem;"></i>
-        <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 1rem;">404 - Página no encontrada</h1>
-        <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 2rem;">
-          La ruta <code>#${path}</code> no existe o ha sido movida.
-        </p>
-        <a href="#/" class="btn btn-primary btn-lg">
-          <i class="fa-solid fa-house"></i> Volver al Inicio
-        </a>
-      </div>
-    `;
+    clearElement(this.appContainer);
+    this.appContainer.appendChild(
+      el('div', { className: 'container', style: { textAlign: 'center', padding: '5rem 1.5rem' } },
+        el('i', {
+          className: 'fa-solid fa-compass-slash text-mint',
+          style: { fontSize: '3.5rem', marginBottom: '1.5rem', display: 'block' }
+        }),
+        el('h1', { style: { fontSize: '2.25rem', fontWeight: '800', marginBottom: '1rem' }, textContent: '404 - Página no encontrada' }),
+        el('p', { style: { color: 'var(--text-muted)', maxWidth: '500px', margin: '0 auto 2rem' } },
+          'La ruta ',
+          el('code', { textContent: `#${path}` }),
+          ' no existe o ha sido movida.'
+        ),
+        el('a', { href: '#/', className: 'btn btn-primary btn-lg' },
+          icon('fa-solid fa-house'),
+          ' Volver al Inicio'
+        )
+      )
+    );
   }
 
   renderError(title, message) {
-    this.appContainer.innerHTML = `
-      <div class="container" style="padding: 4rem 1.5rem;">
-        <div class="settings-box" style="border-left: 4px solid var(--color-danger);">
-          <h2 class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> ${title}</h2>
-          <p style="margin-top: 0.5rem;">${message}</p>
-          <a href="#/" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">Regresar al inicio</a>
-        </div>
-      </div>
-    `;
+    clearElement(this.appContainer);
+    this.appContainer.appendChild(
+      el('div', { className: 'container', style: { padding: '4rem 1.5rem' } },
+        el('div', { className: 'settings-box', style: { borderLeft: '4px solid var(--color-danger)' } },
+          el('h2', { className: 'text-danger' },
+            icon('fa-solid fa-triangle-exclamation'),
+            ` ${title}`
+          ),
+          el('p', { style: { marginTop: '0.5rem' }, textContent: message }),
+          el('a', { href: '#/', className: 'btn btn-secondary btn-sm', style: { marginTop: '1rem' } }, 'Regresar al inicio')
+        )
+      )
+    );
   }
 }
 
