@@ -90,5 +90,6 @@ npx serve .
 
 ## 📚 Documentación Técnica Adicional
 
-* 📖 [Especificación de Formato de Cursos (CURSO_SPEC.md)](docs/CURSO_SPEC.md): Guía de esquemas JSON y estructura de lecciones Markdown.
+* 📘 [Guía Paso a Paso para Crear Cursos y Lecciones (GUIA_CREACION_CURSOS.md)](docs/GUIA_CREACION_CURSOS.md): Guía práctica con plantillas y checklist para creadores de contenido.
+* 📖 [Especificación de Formato de Cursos (CURSO_SPEC.md)](docs/CURSO_SPEC.md): Esquemas formales de `courses.json` y `course.json`.
 * 🚀 [Despliegue y Repositorio Separado (GITHUB_PAGES_Y_REPO_SETUP.md)](docs/GITHUB_PAGES_Y_REPO_SETUP.md): Cómo crear un repositorio independiente en GitHub para tus cursos y enlazarlo con jsDelivr.
