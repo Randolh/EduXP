@@ -68,32 +68,45 @@ export function enhanceCodeBlocks(containerElement) {
       }
     }
 
-    // Crear contenedor wrapper
+    // Crear contenedor wrapper y header de forma nativa
     const wrapper = document.createElement('div');
     wrapper.className = 'code-block-wrapper';
 
-    // Crear header con botón copiar
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'code-copy-btn';
+    copyBtn.title = 'Copiar código al portapapeles';
+
+    const copyIcon = document.createElement('i');
+    copyIcon.className = 'fa-regular fa-clone';
+    copyBtn.append(copyIcon, document.createTextNode(' Copiar'));
+
+    const langSpan = document.createElement('span');
+    const codeIcon = document.createElement('i');
+    codeIcon.className = 'fa-solid fa-code';
+    langSpan.append(codeIcon, document.createTextNode(` ${lang}`));
+
     const header = document.createElement('div');
     header.className = 'code-block-header';
-    header.innerHTML = `
-      <span><i class="fa-solid fa-code"></i> ${lang}</span>
-      <button class="code-copy-btn" title="Copiar código al portapapeles">
-        <i class="fa-regular fa-clone"></i> Copiar
-      </button>
-    `;
+    header.append(langSpan, copyBtn);
 
     // Reemplazar en el DOM
     pre.parentNode.insertBefore(wrapper, pre);
     wrapper.appendChild(header);
     wrapper.appendChild(pre);
 
-    // Evento de copia
-    const copyBtn = header.querySelector('.code-copy-btn');
+    // Evento de copia nativo
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(code.innerText).then(() => {
-        copyBtn.innerHTML = `<i class="fa-solid fa-check text-mint"></i> ¡Copiado!`;
+        copyBtn.replaceChildren();
+        const checkIcon = document.createElement('i');
+        checkIcon.className = 'fa-solid fa-check text-mint';
+        copyBtn.append(checkIcon, document.createTextNode(' ¡Copiado!'));
+
         setTimeout(() => {
-          copyBtn.innerHTML = `<i class="fa-regular fa-clone"></i> Copiar`;
+          copyBtn.replaceChildren();
+          const cloneIcon = document.createElement('i');
+          cloneIcon.className = 'fa-regular fa-clone';
+          copyBtn.append(cloneIcon, document.createTextNode(' Copiar'));
         }, 2000);
       }).catch(err => {
         console.error('Error copiando al portapapeles:', err);
