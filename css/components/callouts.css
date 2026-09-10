@@ -1,0 +1,51 @@
+/* ==========================================================================
+   EduXP - Callouts & Alerts Component Styles (GitHub Markdown Style)
+   ========================================================================== */
+
+.callout {
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  margin: 1.75rem 0;
+  border-left: 4px solid var(--border-medium);
+  background: var(--bg-surface);
+}
+
+.callout-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.callout-info {
+  border-left-color: var(--cyan-accent);
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.callout-info .callout-title {
+  color: var(--cyan-accent);
+}
+
+.callout-tip {
+  border-left-color: var(--mint-primary);
+  background: rgba(0, 245, 160, 0.06);
+}
+
+.callout-tip .callout-title {
+  color: var(--mint-primary);
+}
+
+.callout-warning {
+  border-left-color: var(--color-warning);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.callout-warning .callout-title {
+  color: var(--color-warning);
+}

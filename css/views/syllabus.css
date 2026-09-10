@@ -1,0 +1,222 @@
+/* ==========================================================================
+   EduXP - Course Detail & Syllabus (Temario) View Styles
+   ========================================================================== */
+
+.course-detail-header {
+  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-base) 100%);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 3rem 1.5rem;
+}
+
+.course-header-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.course-info-col h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0.85rem 0 1rem;
+  color: var(--text-main);
+}
+
+.course-full-desc {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 1.75rem;
+}
+
+.course-meta-pills {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.course-cta-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.cta-progress-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+}
+
+/* ==========================================================================
+   Syllabus / Temario & Modules
+   ========================================================================== */
+.syllabus-container {
+  max-width: 1200px;
+  margin: 2.5rem auto;
+  padding: 0 1.5rem;
+}
+
+.module-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.module-header {
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.module-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.module-counter {
+  font-size: 0.825rem;
+  color: var(--text-dim);
+}
+
+.lessons-list {
+  list-style: none;
+}
+
+/* Fila de Lección en Temario */
+.lesson-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+  gap: 3rem;
+}
+
+.lesson-item-row:last-child {
+  border-bottom: none;
+}
+
+.lesson-item-row:hover {
+  background: var(--bg-card-hover);
+}
+
+.lesson-main-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+  margin-right: 2.5rem;
+}
+
+.lesson-status-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  line-height: 1;
+  background: var(--bg-surface-elevated);
+  color: var(--text-dim);
+  border: 1px solid var(--border-subtle);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.lesson-status-icon i {
+  line-height: 1;
+}
+
+.lesson-status-icon .fa-play {
+  font-size: 0.7rem;
+  margin-left: 2px;
+}
+
+.lesson-status-icon.completed {
+  background: var(--mint-dim);
+  color: var(--mint-primary);
+  border-color: var(--mint-primary);
+}
+
+.lesson-title-link {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.lesson-title-link:hover {
+  color: var(--mint-primary);
+}
+
+.lesson-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  font-size: 0.825rem;
+  color: var(--text-dim);
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.lesson-duration-badge,
+.lesson-item-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  width: 90px;
+  min-width: 90px;
+  justify-content: flex-start;
+  text-align: left;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
+
+.lesson-duration-badge i,
+.lesson-item-meta span i {
+  width: 14px;
+  text-align: center;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@media (max-width: 860px) {
+  .course-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lesson-item-row {
+    gap: 1.5rem;
+    padding: 0.9rem 1rem;
+  }
+
+  .lesson-main-info {
+    margin-right: 1rem;
+  }
+}

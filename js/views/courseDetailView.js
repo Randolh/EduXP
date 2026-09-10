@@ -1,11 +1,13 @@
 /**
  * EduXP - Vista de Detalle de Curso (Course Detail / Syllabus)
- * Construcción declarativa 100% nativa con la API del DOM (Buenas prácticas: sin innerHTML)
+ * Construcción declarativa 100% nativa con la API del DOM (sin innerHTML)
+ * Utiliza componentes modulares ModuleCard, LessonRow, ProgressBar y Badge
  */
 
 import { api } from '../api.js';
 import { store } from '../store.js';
 import { el, clearElement, icon, createLoader } from '../utils/dom.js';
+import { createBadge, createProgressBar, createModuleCard } from '../components/index.js';
 
 export async function renderCourseDetail(container, courseSlug) {
   clearElement(container);
@@ -52,8 +54,8 @@ export async function renderCourseDetail(container, courseSlug) {
             ' Volver al Catálogo'
           ),
           el('div', { style: { display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' } },
-            el('span', { className: `badge badge-${badgeTheme}`, textContent: course.level || 'Todos los niveles' }),
-            el('span', { className: 'badge badge-cyan', textContent: course.category || 'Desarrollo' })
+            createBadge({ text: course.level || 'Todos los niveles', theme: badgeTheme }),
+            createBadge({ text: course.category || 'Desarrollo', theme: 'cyan' })
           ),
           el('h1', { textContent: course.title }),
           el('p', { className: 'course-full-desc', textContent: course.description }),
@@ -80,9 +82,10 @@ export async function renderCourseDetail(container, courseSlug) {
               el('span', { style: { color: 'var(--text-main)', fontWeight: '700' }, textContent: 'Tu Avance' }),
               el('span', { className: 'text-mint', textContent: `${stats.percentage}%` })
             ),
-            el('div', { className: 'progress-track' },
-              el('div', { className: 'progress-fill', style: { width: `${stats.percentage}%` } })
-            ),
+            createProgressBar({
+              percentage: stats.percentage,
+              showLabels: false
+            }),
             el('p', {
               style: { fontSize: '0.775rem', color: 'var(--text-dim)', marginTop: '0.5rem' },
               textContent: `${stats.completed} de ${totalLessonsCount} lecciones completadas`
@@ -99,14 +102,17 @@ export async function renderCourseDetail(container, courseSlug) {
                   ` ${stats.completed > 0 ? 'Continuar Lección' : 'Comenzar Ahora'}`
                 ),
                 el('p', {
-                  style: { fontSize: '0.75rem', color: 'var(--text-dim)', textAlign: 'center', marginTop: '0.5rem' }
-                },
-                  'Próxima: ',
-                  el('strong', { textContent: targetLesson.title })
-                )
+                  style: {
+                    fontSize: '0.775rem',
+                    color: 'var(--text-dim)',
+                    textAlign: 'center',
+                    marginTop: '0.65rem'
+                  },
+                  textContent: `Siguiente: ${targetLesson.title}`
+                })
               )
-            : el('p', {
-                className: 'text-mint',
+            : el('div', {
+                className: 'badge badge-mint',
                 style: { textAlign: 'center', fontWeight: '600' }
               },
                 icon('fa-solid fa-circle-check'),
@@ -128,7 +134,11 @@ export async function renderCourseDetail(container, courseSlug) {
         )
       ),
       el('div', { className: 'modules-accordion' },
-        course.modules.map((mod, modIdx) => createModuleCard(courseSlug, mod, modIdx))
+        course.modules.map((mod, modIdx) => createModuleCard({
+          courseSlug,
+          module: mod,
+          moduleIndex: modIdx
+        }))
       )
     );
 
@@ -151,55 +161,6 @@ export async function renderCourseDetail(container, courseSlug) {
       )
     );
   }
-}
-
-function createModuleCard(courseSlug, mod, modIdx) {
-  return el('div', { className: 'module-card' },
-    el('div', { className: 'module-header' },
-      el('div', { className: 'module-title' },
-        el('span', {
-          style: { color: 'var(--mint-primary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' },
-          textContent: `MOD ${modIdx + 1}`
-        }),
-        el('span', { textContent: mod.title })
-      ),
-      el('span', { className: 'module-counter', textContent: `${mod.lessons.length} lecciones` })
-    ),
-    el('ul', { className: 'lessons-list' },
-      mod.lessons.map(lesson => {
-        const isCompleted = store.isLessonCompleted(courseSlug, lesson.id);
-        return el('li', { className: 'lesson-item-row' },
-          el('div', { className: 'lesson-main-info' },
-            el('div', {
-              className: `lesson-status-icon ${isCompleted ? 'completed' : ''}`,
-              title: isCompleted ? 'Lección completada' : 'Pendiente'
-            },
-              icon(`fa-solid ${isCompleted ? 'fa-check' : 'fa-play'}`)
-            ),
-            el('a', {
-              href: `#/course/${courseSlug}/lesson/${lesson.id}`,
-              className: 'lesson-title-link',
-              title: lesson.title,
-              textContent: lesson.title
-            })
-          ),
-          el('div', { className: 'lesson-item-meta' },
-            el('span', { className: 'lesson-duration-badge' },
-              icon('fa-regular fa-clock'),
-              ` ${lesson.duration || '10 min'}`
-            ),
-            el('a', {
-              href: `#/course/${courseSlug}/lesson/${lesson.id}`,
-              className: 'btn btn-ghost btn-sm',
-              title: 'Ir a la lección'
-            },
-              icon('fa-solid fa-chevron-right')
-            )
-          )
-        );
-      })
-    )
-  );
 }
 
 function findLessonById(modules, lessonId) {

@@ -1,0 +1,152 @@
+/* ==========================================================================
+   EduXP - Form Controls, Radio Cards & Search Input Styles
+   ========================================================================== */
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--mint-primary);
+  box-shadow: 0 0 0 3px rgba(0, 245, 160, 0.15);
+  background: var(--bg-surface-elevated);
+}
+
+.form-help {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 0.4rem;
+}
+
+/* Radio Cards (Selector de Fuente Local vs GitHub) */
+.radio-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.radio-card {
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  cursor: pointer;
+  background: var(--bg-surface);
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  position: relative;
+}
+
+.radio-card:hover {
+  border-color: rgba(0, 245, 160, 0.5);
+  background: var(--bg-surface-elevated);
+}
+
+.radio-card.active {
+  border-color: var(--mint-primary);
+  background: rgba(0, 245, 160, 0.04);
+  box-shadow: 0 0 20px rgba(0, 245, 160, 0.12);
+}
+
+.radio-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all var(--transition-fast);
+}
+
+.radio-card.active .radio-circle {
+  border-color: var(--mint-primary);
+}
+
+.radio-card.active .radio-circle::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--mint-primary);
+}
+
+.radio-content h4 {
+  font-size: 0.975rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+}
+
+.radio-content p {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* Buscador */
+.search-box-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+  padding: 0.85rem 1rem 0.85rem 3rem;
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--mint-primary);
+  box-shadow: 0 0 20px rgba(0, 245, 160, 0.15);
+  background: var(--bg-surface-elevated);
+}
+
+/* Settings Box */
+.settings-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}

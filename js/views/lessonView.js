@@ -1,12 +1,20 @@
 /**
  * EduXP - Vista del Visor de Lección (Lesson Viewer)
  * Implementada 100% con la API nativa de JavaScript DOM (sin innerHTML)
+ * Utiliza componentes modulares SidebarLessonItem, ProgressBar, Breadcrumbs y Toast
  */
 
 import { api } from '../api.js';
 import { store } from '../store.js';
 import { renderMarkdown, enhanceCodeBlocks } from '../utils/markdown.js';
 import { el, clearElement, icon, createLoader, parseHtmlFragment } from '../utils/dom.js';
+import {
+  createSidebarLessonItem,
+  createProgressBar,
+  updateProgressBar,
+  createBreadcrumbs,
+  showToast
+} from '../components/index.js';
 
 export async function renderLesson(container, courseSlug, lessonId) {
   clearElement(container);
@@ -46,24 +54,43 @@ export async function renderLesson(container, courseSlug, lessonId) {
     const isCompleted = store.isLessonCompleted(courseSlug, lessonId);
     const stats = store.getCourseStats(courseSlug, flattenedLessons.length);
 
-    // 1. Elementos reactivos de estado en Sidebar
-    const progressBarFill = el('div', {
-      className: 'progress-fill',
-      id: 'sidebar-progress-bar',
-      style: { width: `${stats.percentage}%` }
+    // 1. Barra de progreso modular en Sidebar
+    const sidebarProgressBar = createProgressBar({
+      percentage: stats.percentage,
+      completed: stats.completed,
+      total: stats.total,
+      showLabels: true,
+      fillId: 'sidebar-progress-bar',
+      labelId: 'sidebar-progress-label',
+      countId: 'sidebar-progress-count'
     });
+    sidebarProgressBar.classList.add('sidebar-progress-wrap');
 
-    const progressLabel = el('span', {
-      id: 'sidebar-progress-label',
-      textContent: `${stats.percentage}% completado`
-    });
+    // 2. Construir Sidebar con Módulos y Lecciones usando SidebarLessonItem
+    const modulesTree = el('div', { className: 'viewer-modules-tree' },
+      course.modules.map((mod, modIdx) =>
+        el('div', { className: 'sidebar-module-group' },
+          el('div', {
+            className: 'sidebar-module-title',
+            textContent: `Módulo ${modIdx + 1}: ${mod.title}`
+          }),
+          mod.lessons.map(les => {
+            const lesCompleted = store.isLessonCompleted(courseSlug, les.id);
+            const isCurrent = les.id === lessonId;
 
-    const progressCount = el('span', {
-      id: 'sidebar-progress-count',
-      textContent: `${stats.completed}/${stats.total}`
-    });
+            const item = createSidebarLessonItem({
+              lesson: les,
+              courseSlug,
+              isActive: isCurrent,
+              isCompleted: lesCompleted
+            });
+            item.dataset.lessonId = les.id;
+            return item;
+          })
+        )
+      )
+    );
 
-    // 2. Construir Sidebar con Módulos y Lecciones
     const sidebar = el('aside', { className: 'viewer-sidebar', id: 'viewer-sidebar' },
       el('div', { className: 'viewer-sidebar-header' },
         el('a', { href: `#/course/${courseSlug}`, className: 'back-to-course-link' },
@@ -71,37 +98,9 @@ export async function renderLesson(container, courseSlug, lessonId) {
           ' Volver al curso'
         ),
         el('h2', { className: 'viewer-course-title', textContent: course.title }),
-        el('div', { className: 'sidebar-progress-wrap' },
-          el('div', { className: 'progress-track' }, progressBarFill),
-          el('div', { className: 'progress-text-row' }, progressLabel, progressCount)
-        )
+        sidebarProgressBar
       ),
-
-      el('div', { className: 'viewer-modules-tree' },
-        course.modules.map((mod, modIdx) =>
-          el('div', { className: 'sidebar-module-group' },
-            el('div', {
-              className: 'sidebar-module-title',
-              textContent: `Módulo ${modIdx + 1}: ${mod.title}`
-            }),
-            mod.lessons.map(les => {
-              const lesCompleted = store.isLessonCompleted(courseSlug, les.id);
-              const isCurrent = les.id === lessonId;
-
-              return el('a', {
-                href: `#/course/${courseSlug}/lesson/${les.id}`,
-                className: `sidebar-lesson-item ${isCurrent ? 'active' : ''}`,
-                dataset: { lessonId: les.id }
-              },
-                el('div', { className: `sidebar-lesson-icon ${lesCompleted ? 'completed' : ''}` },
-                  icon(`fa-solid ${lesCompleted ? 'fa-check' : 'fa-play'}`)
-                ),
-                el('span', { className: 'sidebar-lesson-title', textContent: les.title })
-              );
-            })
-          )
-        )
-      )
+      modulesTree
     );
 
     // 3. Botón de Completar Lección
@@ -123,32 +122,33 @@ export async function renderLesson(container, courseSlug, lessonId) {
 
     // 5. Navegación inferior Prev / Next
     const prevNav = prevLesson
-      ? el('a', { href: `#/course/${courseSlug}/lesson/${prevLesson.id}`, className: 'nav-direction-btn prev' },
-          el('span', { className: 'nav-direction-label' }, icon('fa-solid fa-arrow-left'), ' Lección Anterior'),
-          el('span', { className: 'nav-direction-title', textContent: prevLesson.title })
+      ? el('a', { href: `#/course/${courseSlug}/lesson/${prevLesson.id}`, className: 'nav-lesson-btn prev' },
+          el('span', { className: 'nav-btn-direction' }, icon('fa-solid fa-arrow-left'), ' Lección Anterior'),
+          el('span', { className: 'nav-btn-title', textContent: prevLesson.title })
         )
       : el('div');
 
     const nextNav = nextLesson
-      ? el('a', { href: `#/course/${courseSlug}/lesson/${nextLesson.id}`, className: 'nav-direction-btn next' },
-          el('span', { className: 'nav-direction-label' }, 'Siguiente Lección ', icon('fa-solid fa-arrow-right')),
-          el('span', { className: 'nav-direction-title', textContent: nextLesson.title })
+      ? el('a', { href: `#/course/${courseSlug}/lesson/${nextLesson.id}`, className: 'nav-lesson-btn next' },
+          el('span', { className: 'nav-btn-direction' }, 'Siguiente Lección ', icon('fa-solid fa-arrow-right')),
+          el('span', { className: 'nav-btn-title', textContent: nextLesson.title })
         )
-      : el('a', { href: `#/course/${courseSlug}`, className: 'nav-direction-btn next' },
-          el('span', { className: 'nav-direction-label' }, 'Fin del curso ', icon('fa-solid fa-trophy', 'text-mint')),
-          el('span', { className: 'nav-direction-title', textContent: '¡Ver resumen final!' })
+      : el('a', { href: `#/course/${courseSlug}`, className: 'nav-lesson-btn next' },
+          el('span', { className: 'nav-btn-direction' }, 'Fin del curso ', icon('fa-solid fa-trophy', 'text-mint')),
+          el('span', { className: 'nav-btn-title', textContent: '¡Ver resumen final!' })
         );
 
-    // 6. Contenido Principal del Visor
+    // 6. Breadcrumbs modulares
+    const breadcrumbs = createBreadcrumbs([
+      { label: 'Cursos', href: '#/courses' },
+      { label: course.title, href: `#/course/${courseSlug}` },
+      { label: currentLesson.title }
+    ]);
+
+    // 7. Contenido Principal del Visor
     const mainContent = el('div', { className: 'viewer-main' },
       el('div', { className: 'viewer-top-bar' },
-        el('div', { className: 'viewer-breadcrumbs' },
-          el('a', { href: '#/courses', textContent: 'Cursos' }),
-          icon('fa-solid fa-angle-right'),
-          el('a', { href: `#/course/${courseSlug}`, textContent: course.title }),
-          icon('fa-solid fa-angle-right'),
-          el('span', { textContent: currentLesson.title })
-        ),
+        breadcrumbs,
         el('div', { className: 'viewer-actions' }, completeBtn)
       ),
 
@@ -163,12 +163,12 @@ export async function renderLesson(container, courseSlug, lessonId) {
 
       articleContainer,
 
-      el('footer', { className: 'viewer-navigation-footer' }, prevNav, nextNav)
+      el('footer', { className: 'viewer-bottom-nav' }, prevNav, nextNav)
     );
 
-    // 7. Botón móvil de sidebar
+    // 8. Botón móvil de sidebar
     const mobileSidebarToggle = el('button', {
-      className: 'sidebar-mobile-btn',
+      className: 'sidebar-mobile-toggle',
       id: 'mobile-sidebar-toggle',
       title: 'Abrir temario'
     }, icon('fa-solid fa-bars'));
@@ -177,7 +177,7 @@ export async function renderLesson(container, courseSlug, lessonId) {
       sidebar.classList.toggle('is-open');
     });
 
-    // 8. Evento del botón de Completar
+    // 9. Evento del botón de Completar
     completeBtn.addEventListener('click', () => {
       const isNowCompleted = store.toggleLessonCompleted(courseSlug, lessonId);
 
@@ -200,13 +200,14 @@ export async function renderLesson(container, courseSlug, lessonId) {
         }
       }
 
-      // Actualizar progreso reactivo
+      // Actualizar barra de progreso modular
       const updatedStats = store.getCourseStats(courseSlug, flattenedLessons.length);
-      progressBarFill.style.width = `${updatedStats.percentage}%`;
-      progressLabel.textContent = `${updatedStats.percentage}% completado`;
-      progressCount.textContent = `${updatedStats.completed}/${updatedStats.total}`;
+      updateProgressBar(sidebarProgressBar, updatedStats);
 
-      showToast(isNowCompleted ? '¡Lección completada! Progreso guardado.' : 'Lección desmarcada.', 'success');
+      showToast(
+        isNowCompleted ? '¡Lección completada! Progreso guardado.' : 'Lección desmarcada.',
+        'success'
+      );
     });
 
     // Ensamblar en contenedor principal
@@ -214,7 +215,7 @@ export async function renderLesson(container, courseSlug, lessonId) {
     const viewerLayout = el('div', { className: 'viewer-layout' }, sidebar, mainContent);
     container.append(viewerLayout, mobileSidebarToggle);
 
-    // Enriquecer bloques de código con cabecera y Prism
+    // Enriquecer bloques de código con cabecera interactiva y Prism
     enhanceCodeBlocks(articleContainer);
 
   } catch (err) {
@@ -232,22 +233,4 @@ export async function renderLesson(container, courseSlug, lessonId) {
       )
     );
   }
-}
-
-function showToast(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = el('div', { className: `toast toast-${type}` },
-    icon(type === 'success' ? 'fa-solid fa-check' : 'fa-solid fa-info-circle', type === 'success' ? 'text-mint' : 'text-cyan'),
-    el('span', { textContent: message })
-  );
-
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(10px)';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
 }

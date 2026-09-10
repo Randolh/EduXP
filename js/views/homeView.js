@@ -1,11 +1,15 @@
 /**
  * EduXP - Vista de Inicio (Home)
  * Implementada con la API nativa del DOM (Buenas prácticas: sin innerHTML)
+ * Utiliza componentes modulares de js/components/
  */
 
 import { api } from '../api.js';
-import { store } from '../store.js';
 import { el, clearElement, icon, createLoader } from '../utils/dom.js';
+import { createCourseCard, createBadge } from '../components/index.js';
+
+// Re-exportar para compatibilidad si alguien lo importa de homeView
+export { createCourseCard };
 
 export async function renderHome(container) {
   clearElement(container);
@@ -15,10 +19,11 @@ export async function renderHome(container) {
     el('div', { className: 'hero-glow-blob' }),
     el('div', { className: 'hero-content' },
       el('div', { className: 'hero-tag' },
-        el('span', { className: 'badge badge-mint' },
-          icon('fa-solid fa-sparkles'),
-          ' Educación Tecnológica Libre'
-        )
+        createBadge({
+          text: 'Educación Tecnológica Libre',
+          theme: 'mint',
+          iconClass: 'fa-solid fa-sparkles'
+        })
       ),
       el('h1', { className: 'hero-title' },
         'Aprende Desarrollo Web Moderno ',
@@ -131,46 +136,4 @@ export async function renderHome(container) {
       )
     );
   }
-}
-
-export function createCourseCard(course) {
-  const stats = store.getCourseStats(course.slug, course.totalLessons || 0);
-  const badgeTheme = course.badgeColor || 'mint';
-  const iconClass = course.icon || 'fa-solid fa-code';
-
-  return el('article', { className: 'course-card' },
-    el('div', { className: 'card-header-banner' },
-      el('div', { className: 'card-icon-bubble' }, icon(iconClass)),
-      el('span', { className: `badge badge-${badgeTheme}`, textContent: course.level || 'Todos' })
-    ),
-    el('div', { className: 'card-body' },
-      el('h3', { className: 'card-title', textContent: course.title }),
-      el('p', { className: 'card-desc', textContent: course.description }),
-      el('div', { className: 'card-progress-bar-wrap' },
-        el('div', { className: 'progress-track' },
-          el('div', { className: 'progress-fill', style: { width: `${stats.percentage}%` } })
-        ),
-        el('div', { className: 'progress-text-row' },
-          el('span', { textContent: `${stats.percentage}% completado` }),
-          el('span', { textContent: `${stats.completed}/${stats.total || course.totalLessons || 0} lecciones` })
-        )
-      ),
-      el('div', { className: 'card-meta-row' },
-        el('div', { className: 'card-meta-item' },
-          icon('fa-regular fa-clock'),
-          ` ${course.duration || '2-3 hrs'}`
-        ),
-        el('div', { className: 'card-meta-item' },
-          icon('fa-solid fa-list-check'),
-          ` ${course.totalLessons || 0} temas`
-        )
-      )
-    ),
-    el('div', { className: 'card-footer-action' },
-      el('a', { href: `#/course/${course.slug}`, className: 'btn btn-primary btn-block btn-sm' },
-        icon('fa-solid fa-play'),
-        ` ${stats.completed > 0 ? 'Continuar Curso' : 'Comenzar Curso'}`
-      )
-    )
-  );
 }

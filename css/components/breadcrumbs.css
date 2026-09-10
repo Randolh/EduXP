@@ -1,0 +1,31 @@
+/* ==========================================================================
+   EduXP - Breadcrumbs Component Styles
+   ========================================================================== */
+
+.viewer-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+
+.viewer-breadcrumbs a {
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.viewer-breadcrumbs a:hover {
+  color: var(--mint-primary);
+}
+
+.viewer-breadcrumbs .breadcrumb-sep {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.viewer-breadcrumbs .breadcrumb-current {
+  color: var(--text-main);
+  font-weight: 600;
+}

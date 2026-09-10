@@ -6,6 +6,7 @@
 import { configManager } from '../config.js';
 import { store } from '../store.js';
 import { el, clearElement, icon } from '../utils/dom.js';
+import { showToast } from '../components/index.js';
 
 export function renderSettings(container) {
   clearElement(container);
@@ -164,6 +165,7 @@ export function renderSettings(container) {
     statusMsg.appendChild(
       el('span', { className: 'text-mint' }, icon('fa-solid fa-check'), ' ¡Configuración guardada exitosamente!')
     );
+    showToast('¡Configuración guardada exitosamente!', 'success');
     setTimeout(() => { clearElement(statusMsg); }, 3000);
   });
 
@@ -188,6 +190,7 @@ export function renderSettings(container) {
             ' Debes ingresar el Usuario y el Nombre del repositorio de GitHub.'
           )
         );
+        showToast('Debes ingresar el Usuario y Repositorio de GitHub.', 'error');
         return;
       }
       testUrl = useCdn
@@ -207,6 +210,7 @@ export function renderSettings(container) {
           ` Conexión exitosa. Se detectaron ${count} cursos disponibles en la fuente.`
         )
       );
+      showToast(`Conexión exitosa. ${count} cursos detectados.`, 'success');
     } catch (err) {
       clearElement(statusMsg);
       statusMsg.appendChild(
@@ -215,12 +219,14 @@ export function renderSettings(container) {
           ` Error de conexión: No se pudo leer courses.json (${err.message}). Verifica que el repositorio sea público.`
         )
       );
+      showToast(`Error de conexión (${err.message})`, 'error');
     }
   });
 
   resetBtn.addEventListener('click', () => {
     if (confirm('¿Deseas restaurar la configuración por defecto (Contenido local demo)?')) {
       configManager.resetConfig();
+      showToast('Configuración restaurada al contenido local demo.', 'info');
       renderSettings(container);
     }
   });
@@ -228,7 +234,7 @@ export function renderSettings(container) {
   clearProgressBtn.addEventListener('click', () => {
     if (confirm('¿Estás seguro de que deseas borrar todo tu progreso registrado? Esta acción no se puede deshacer.')) {
       store.clearAllProgress();
-      alert('Se ha reiniciado tu progreso.');
+      showToast('Se ha reiniciado tu progreso.', 'info');
     }
   });
 
