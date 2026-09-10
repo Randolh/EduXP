@@ -179,11 +179,12 @@ function createModuleCard(courseSlug, mod, modIdx) {
             el('a', {
               href: `#/course/${courseSlug}/lesson/${lesson.id}`,
               className: 'lesson-title-link',
+              title: lesson.title,
               textContent: lesson.title
             })
           ),
           el('div', { className: 'lesson-item-meta' },
-            el('span', {},
+            el('span', { className: 'lesson-duration-badge' },
               icon('fa-regular fa-clock'),
               ` ${lesson.duration || '10 min'}`
             ),
