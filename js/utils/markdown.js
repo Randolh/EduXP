@@ -3,10 +3,22 @@
  * Renderizado puro y robusto con enriquecimiento interactivo en el DOM
  */
 
-export function renderMarkdown(markdownText) {
+import { configManager } from '../config.js';
+
+export function renderMarkdown(markdownText, courseSlug = null) {
   if (!markdownText) return '';
 
   let text = String(markdownText);
+
+  // Si se provee courseSlug, resolver rutas relativas de imágenes (ej. ./assets/diagram.png o assets/diagram.png)
+  if (courseSlug) {
+    const baseUrl = configManager.getBaseUrl();
+    text = text.replace(/!\[([^\]]*)\]\((?!https?:\/\/|data:)([^)]+)\)/g, (match, alt, relativePath) => {
+      const cleanPath = relativePath.replace(/^\.?\//, '');
+      const fullUrl = `${baseUrl}/courses/${courseSlug}/${cleanPath}`;
+      return `![${alt}](${fullUrl})`;
+    });
+  }
 
   // 1. Reemplazo de Callouts / Alerts estilo GitHub
   text = text

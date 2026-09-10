@@ -41,7 +41,7 @@ export async function renderLesson(container, courseSlug, lessonId) {
 
     // Obtener y parsear el Markdown
     const markdownRaw = await api.getLessonMarkdown(courseSlug, currentLesson.file);
-    const parsedHtml = renderMarkdown(markdownRaw);
+    const parsedHtml = renderMarkdown(markdownRaw, courseSlug);
 
     const isCompleted = store.isLessonCompleted(courseSlug, lessonId);
     const stats = store.getCourseStats(courseSlug, flattenedLessons.length);

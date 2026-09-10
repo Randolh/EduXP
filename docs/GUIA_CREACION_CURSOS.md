@@ -222,6 +222,44 @@ Usa sintaxis Markdown estándar para tablas comparativas:
 
 ---
 
+### D. Imágenes y Diagramas (Locales y Externas)
+
+EduXP maneja imágenes de dos formas con soporte automático y diseño responsivo adaptado a la estética oscura:
+
+#### 1. Imágenes Externas (URLs absolutas)
+Puedes enlazar imágenes alojadas en cualquier CDN o servicio web:
+```markdown
+![Diagrama del Event Loop](https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800)
+```
+
+#### 2. Imágenes Propias del Curso (Rutas Relativas en GitHub o Local)
+Puedes almacenar imágenes dentro de la carpeta de tu propio curso (por ejemplo en `courses/<slug>/assets/` o `courses/<slug>/images/`):
+
+```text
+courses/
+└── react-esencial/
+    ├── course.json
+    ├── assets/                    <-- Carpeta para diagramas y capturas
+    │   └── virtual-dom.png
+    └── lessons/
+        └── 01-intro.md
+```
+
+En tu archivo `.md`, simplemente referénciala con ruta relativa:
+```markdown
+![Diagrama del Virtual DOM](./assets/virtual-dom.png)
+```
+
+> [!TIP]
+> **Resolución Automática en GitHub Pages**: No necesitas cambiar las URLs de las imágenes. EduXP reescribe automáticamente `./assets/virtual-dom.png` hacia la fuente configurada (sea en local o mediante la CDN jsDelivr del repositorio público de GitHub).
+> 
+> Además, todas las imágenes cuentan con:
+> - Diseño fluido y responsivo (`max-width: 100%`).
+> - Bordes redondeados y sombras sutiles integradas a la paleta oscura.
+> - Efecto de resplandor verde menta al pasar el cursor.
+
+---
+
 ## 6. Plantillas Listas para Copiar y Pegar
 
 ### Plantilla de Lección (`template-leccion.md`)

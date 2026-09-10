@@ -36,6 +36,8 @@ React mantiene una copia ligera en memoria de la estructura del DOM llamada **Vi
 3. **Reconciliación (Diffing)**: Compara el árbol nuevo con el anterior para detectar únicamente las diferencias exactas.
 4. **Actualización Selectiva**: Modifica en el navegador real solo los nodos específicos que cambiaron.
 
+![Diagrama del Virtual DOM](./assets/virtual-dom.svg)
+
 ---
 
 ## 3. Principales Ventajas de React
