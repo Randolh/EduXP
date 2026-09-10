@@ -105,15 +105,16 @@ export async function renderLesson(container, courseSlug, lessonId) {
     );
 
     // 3. Botón de Completar Lección
-    const completeBtnIcon = icon(`fa-solid ${isCompleted ? 'fa-check-circle' : 'fa-circle'}`);
+    const completeBtnIcon = icon(isCompleted ? 'fa-solid fa-circle-check text-mint' : 'fa-regular fa-circle-check');
     const completeBtnText = el('span', {
       id: 'complete-btn-text',
-      textContent: isCompleted ? 'Completada' : 'Marcar como lista'
+      textContent: isCompleted ? '¡Completada!' : 'Marcar como completada'
     });
 
     const completeBtn = el('button', {
-      className: `btn ${isCompleted ? 'btn-outline' : 'btn-primary'} btn-sm`,
-      id: 'complete-toggle-btn'
+      className: `btn ${isCompleted ? 'btn-outline' : 'btn-secondary'} btn-sm`,
+      id: 'complete-toggle-btn',
+      title: isCompleted ? 'Hacer clic para desmarcar lección' : 'Hacer clic para marcar como completada'
     }, completeBtnIcon, completeBtnText);
 
     // 4. Contenedor de Artículo Markdown
@@ -180,9 +181,10 @@ export async function renderLesson(container, courseSlug, lessonId) {
     completeBtn.addEventListener('click', () => {
       const isNowCompleted = store.toggleLessonCompleted(courseSlug, lessonId);
 
-      completeBtn.className = `btn ${isNowCompleted ? 'btn-outline' : 'btn-primary'} btn-sm`;
-      completeBtnIcon.className = `fa-solid ${isNowCompleted ? 'fa-check-circle' : 'fa-circle'}`;
-      completeBtnText.textContent = isNowCompleted ? 'Completada' : 'Marcar como lista';
+      completeBtn.className = `btn ${isNowCompleted ? 'btn-outline' : 'btn-secondary'} btn-sm`;
+      completeBtn.title = isNowCompleted ? 'Hacer clic para desmarcar lección' : 'Hacer clic para marcar como completada';
+      completeBtnIcon.className = isNowCompleted ? 'fa-solid fa-circle-check text-mint' : 'fa-regular fa-circle-check';
+      completeBtnText.textContent = isNowCompleted ? '¡Completada!' : 'Marcar como completada';
 
       // Actualizar icono en el sidebar
       const sidebarItem = sidebar.querySelector(`.sidebar-lesson-item[data-lesson-id="${lessonId}"]`);
