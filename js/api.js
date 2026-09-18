@@ -15,7 +15,8 @@ class ContentApi {
   }
 
   async fetchWithCache(url, isJson = true) {
-    if (this.cache.has(url)) {
+    const isLocal = configManager.config?.sourceType === 'local';
+    if (!isLocal && this.cache.has(url)) {
       return this.cache.get(url);
     }
 

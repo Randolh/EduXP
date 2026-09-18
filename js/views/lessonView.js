@@ -6,7 +6,7 @@
 
 import { api } from '../api.js';
 import { store } from '../store.js';
-import { renderMarkdown, enhanceCodeBlocks } from '../utils/markdown.js';
+import { renderMarkdown, enhanceCodeBlocks, enhanceQuizzes } from '../utils/markdown.js';
 import { el, clearElement, icon, createLoader, parseHtmlFragment } from '../utils/dom.js';
 import {
   createSidebarLessonItem,
@@ -217,6 +217,9 @@ export async function renderLesson(container, courseSlug, lessonId) {
 
     // Enriquecer bloques de código con cabecera interactiva y Prism
     enhanceCodeBlocks(articleContainer);
+
+    // Enriquecer quizzes interactivos de autoevaluación
+    enhanceQuizzes(articleContainer);
 
   } catch (err) {
     clearElement(container);

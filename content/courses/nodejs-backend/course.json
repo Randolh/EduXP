@@ -14,6 +14,26 @@
     "Conceptos de asincronía en JavaScript (Callbacks, Promesas y sintaxis async/await).",
     "Uso básico de la terminal o línea de comandos (navegar carpetas, ejecutar comandos simples)."
   ],
+  "objectives": [
+    "Comprender a fondo la arquitectura de Node.js: el motor V8, libuv y el Event Loop.",
+    "Manejar con soltura los dos sistemas de módulos principales: CommonJS (require) y ES Modules (import).",
+    "Dominar la creación, configuración y gestión de dependencias profesionales con npm y package.json.",
+    "Implementar operaciones de lectura y escritura asíncronas en el sistema de archivos."
+  ],
+  "project": {
+    "title": "Herramienta CLI y Analizador de Archivos en Node.js",
+    "description": "Construirás una utilidad ejecutable por terminal que analiza directorios, cuenta líneas de código, calcula estadísticas de archivos y exporta reportes en formato JSON.",
+    "deliverables": [
+      "Script ejecutable con binario configurado en package.json",
+      "Procesamiento asíncrono con fs/promises y manipulación de rutas con path",
+      "Gestión de argumentos de terminal con process.argv y flags personalizados"
+    ]
+  },
+  "targetAudience": [
+    "Desarrolladores frontend que quieren dar el salto al backend utilizando el mismo lenguaje que ya conocen.",
+    "Programadores interesados en automatización de tareas y creación de herramientas de línea de comandos.",
+    "Cualquier profesional de software que necesite entender a fondo el ciclo de vida del Event Loop."
+  ],
   "modules": [
     {
       "id": "mod-node-1",

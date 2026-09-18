@@ -59,3 +59,53 @@ El Event Loop rota de manera continua a través de varias fases clave:
 
 > [!TIP]
 > Dado que el hilo principal es único, evita operaciones sincrónicas pesadas que tomen segundos de cálculo de CPU (como criptografía sin workers o bucles de millones de iteraciones), ya que congelarás todas las demás peticiones entrantes.
+
+---
+
+## 🎯 Autoevaluación Interactiva
+
+> [!QUIZ]
+> ¿Cuál es el principal motivo por el que Node.js puede manejar miles de conexiones simultáneas con un único hilo de ejecución?
+> - [ ] Crea un nuevo hilo de CPU por cada usuario conectado
+> - [x] Utiliza operaciones de entrada/salida (I/O) no bloqueantes orquestadas por el Event Loop y libuv
+> - [ ] Convierte el código de JavaScript directamente en lenguaje ensamblador
+> - [ ] Deshabilita la recolección de basura (Garbage Collector)
+>
+> **Explicación**: Node.js delega las operaciones pesadas de red y disco a la librería libuv y al sistema operativo; cuando terminan, sus callbacks se despachan en el Event Loop sin congelar el hilo principal.
+
+---
+
+## 🛠️ Ejercicio Práctico: Verificando el Orden del Event Loop
+
+**Objetivo**: Predecir y verificar empíricamente el orden de salida de la pila de microtareas y macrotareas.
+
+**Instrucciones**:
+1. Crea un archivo `orden.js`.
+2. Escribe el siguiente bloque de código intentando predecir mentalmente el orden de los `console.log`:
+   ```javascript
+   console.log('1: Inicio sincrónico');
+   setTimeout(() => console.log('2: Timeout en fase Timers'), 0);
+   Promise.resolve().then(() => console.log('3: Promesa en Microtask Queue'));
+   console.log('4: Fin sincrónico');
+   ```
+3. Ejecuta `node orden.js` en tu terminal y compara tu predicción.
+
+<details class="exercise-solution">
+<summary>💡 Ver solución explicada paso a paso</summary>
+
+<div class="solution-content">
+
+**Salida en consola**:
+```text
+1: Inicio sincrónico
+4: Fin sincrónico
+3: Promesa en Microtask Queue
+2: Timeout en fase Timers
+```
+
+**Explicación**:
+1. `1` y `4` se imprimen inmediatamente porque son código sincrónico en la pila de ejecución (*Call Stack*).
+2. `3` es una microtarea (*Microtask*). Las promesas resueltas tienen prioridad y se vacían inmediatamente después de finalizar el código sincrónico actual, antes de que el Event Loop pase a la siguiente fase de macrotareas.
+3. `2` entra en la cola de macrotareas de la fase *Timers*, por lo que se ejecuta al final.
+</div>
+</details>

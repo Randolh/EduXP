@@ -72,3 +72,56 @@ app.post('/api/cursos', (req, res) => {
 
 > [!NOTE]
 > Es una buena práctica siempre acompañar las respuestas con el código de estado HTTP adecuado: `200 OK`, `201 Created`, `400 Bad Request`, `404 Not Found`, etc.
+
+---
+
+## 🎯 Autoevaluación Interactiva
+
+> [!QUIZ]
+> ¿Qué método HTTP y código de estado se deben emplear convencionalmente para registrar un nuevo recurso en una API REST?
+> - [ ] GET con código 200 OK
+> - [x] POST con código 201 Created
+> - [ ] PUT con código 400 Bad Request
+> - [ ] DELETE con código 204 No Content
+>
+> **Explicación**: El método POST se utiliza para enviar datos y crear un nuevo recurso en el servidor, y el código 201 Created confirma que dicho recurso fue creado satisfactoriamente.
+
+---
+
+## 🛠️ Ejercicio Práctico: Endpoint de Estado y Estadísticas
+
+**Objetivo**: Crear un endpoint `GET /api/status` que devuelva información del servidor en formato JSON.
+
+**Instrucciones**:
+1. Agrega una nueva ruta `GET /api/status` en tu archivo `server.js`.
+2. La ruta debe responder con un objeto JSON que incluya:
+   - `servidor`: `"Express"`.
+   - `uptime`: Los segundos que lleva ejecutándose el proceso (`process.uptime()`).
+   - `timestamp`: La fecha y hora actual en formato ISO (`new Date().toISOString()`).
+3. Asegúrate de enviar un código de estado `200 OK`.
+
+> [!TIP]
+> Puedes obtener los segundos transcurridos de tu proceso Node.js llamando a `process.uptime()`.
+
+<details class="exercise-solution">
+<summary>💡 Ver solución explicada paso a paso</summary>
+
+<div class="solution-content">
+
+```javascript
+app.get('/api/status', (req, res) => {
+  res.status(200).json({
+    servidor: 'Express',
+    uptimeSegundos: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    estado: 'saludable'
+  });
+});
+```
+
+**Explicación**:
+- Definimos el handler con `app.get('/api/status', ...)`.
+- Usamos `res.status(200)` para indicar éxito explícito.
+- `.json(...)` serializa el objeto de JavaScript a una cadena JSON con la cabecera `Content-Type: application/json` de forma automática.
+</div>
+</details>

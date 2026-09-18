@@ -33,26 +33,48 @@ export function renderMarkdown(markdownText, courseSlug = null) {
     .replace(/^>\s*\[!(WARNING|CAUTION)\]\s*\n((?:>.*\n?)*)/gim, (_, type, content) => {
       const clean = content.replace(/^>\s?/gm, '').trim();
       return `<div class="callout callout-warning"><div class="callout-title"><i class="fa-solid fa-triangle-exclamation"></i> Advertencia</div><p>${clean}</p></div>\n\n`;
-    });
+    })
+  // 2. Extraer y proteger Quizzes con placeholders únicos para evitar alteraciones de marked
+  const quizPlaceholders = [];
+  text = text.replace(/^>\s*\[!QUIZ\]\s*\n((?:>.*\n?)*)/gim, (_, content) => {
+    const quizHtml = parseQuizBlock(content);
+    const id = `@@QUIZ_PLACEHOLDER_${quizPlaceholders.length}@@`;
+    quizPlaceholders.push({ id, html: quizHtml });
+    return `\n\n${id}\n\n`;
+  });
 
   // Si marked no está disponible en ventana
   if (!window.marked) {
     return `<pre class="fallback-md">${escapeHtml(text)}</pre>`;
   }
 
+  let resultHtml = '';
   try {
     const parseFn = typeof window.marked.parse === 'function'
       ? window.marked.parse
       : (typeof window.marked === 'function' ? window.marked : null);
 
     if (parseFn) {
-      return parseFn(text, { gfm: true, breaks: true });
+      resultHtml = parseFn(text, { gfm: true, breaks: true });
+    } else {
+      resultHtml = `<pre class="fallback-md">${escapeHtml(text)}</pre>`;
     }
-    return `<pre class="fallback-md">${escapeHtml(text)}</pre>`;
   } catch (err) {
     console.error('Error al parsear markdown:', err);
-    return `<pre class="fallback-md">${escapeHtml(text)}</pre>`;
+    resultHtml = `<pre class="fallback-md">${escapeHtml(text)}</pre>`;
   }
+
+  // 3. Reinsertar los bloques HTML de quizzes sin escapar
+  quizPlaceholders.forEach(({ id, html }) => {
+    const wrappedRegex = new RegExp(`<p>\\s*${id}\\s*<\\/p>`, 'g');
+    if (wrappedRegex.test(resultHtml)) {
+      resultHtml = resultHtml.replace(wrappedRegex, html);
+    } else {
+      resultHtml = resultHtml.replaceAll(id, html);
+    }
+  });
+
+  return resultHtml;
 }
 
 /**
@@ -137,6 +159,91 @@ export function enhanceCodeBlocks(containerElement) {
 }
 
 /**
+ * Parsea el bloque de Quiz estilo markdown y genera el HTML del componente
+ */
+function parseQuizBlock(rawContent) {
+  const clean = rawContent.replace(/^>\s?/gm, '').trim();
+  const lines = clean.split('\n');
+
+  const questionLines = [];
+  const options = [];
+  const explanationLines = [];
+  let parsingOptions = false;
+  let parsingExplanation = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const optionMatch = trimmed.match(/^-\s*\[([ xX])\]\s*(.*)$/);
+
+    if (optionMatch) {
+      parsingOptions = true;
+      const isCorrect = optionMatch[1].toLowerCase() === 'x';
+      options.push({ text: optionMatch[2].trim(), isCorrect });
+    } else if (parsingOptions && (trimmed.toLowerCase().startsWith('**explicación**') || trimmed.toLowerCase().startsWith('explicación:') || parsingExplanation)) {
+      parsingExplanation = true;
+      explanationLines.push(trimmed);
+    } else if (!parsingOptions) {
+      questionLines.push(trimmed);
+    } else if (parsingExplanation) {
+      explanationLines.push(trimmed);
+    }
+  }
+
+  const questionText = questionLines.join(' ').replace(/^###?\s*/, '').replace(/^\*\*Autoevaluación\*\*:\s*/i, '').replace(/^Autoevaluación:\s*/i, '').trim();
+  const explanationText = explanationLines.join(' ').replace(/^\*\*Explicación\*\*:\s*/i, '').replace(/^Explicación:\s*/i, '').trim();
+
+  const optionsHtml = options.map((opt) => `<button class="quiz-option" data-correct="${opt.isCorrect}" type="button"><span class="quiz-option-radio"></span><span class="quiz-option-text">${escapeHtml(opt.text)}</span></button>`).join('');
+
+  return `<div class="quiz-card"><div class="quiz-header"><i class="fa-solid fa-circle-question text-mint"></i><span class="quiz-badge">Autoevaluación Interactiva</span></div><div class="quiz-question">${escapeHtml(questionText)}</div><div class="quiz-options">${optionsHtml}</div><div class="quiz-feedback" style="display: none;" data-explanation="${escapeHtml(explanationText)}"><div class="quiz-feedback-title"></div><div class="quiz-feedback-explanation"></div></div></div>`;
+}
+
+/**
+ * Activa la interactividad nativa de los Quizzes en el visor de lección
+ */
+export function enhanceQuizzes(containerElement) {
+  if (!containerElement) return;
+
+  const quizCards = containerElement.querySelectorAll('.quiz-card');
+  quizCards.forEach(card => {
+    const options = card.querySelectorAll('.quiz-option');
+    const feedbackBox = card.querySelector('.quiz-feedback');
+    const feedbackTitle = card.querySelector('.quiz-feedback-title');
+    const feedbackExp = card.querySelector('.quiz-feedback-explanation');
+    const explanation = feedbackBox ? feedbackBox.dataset.explanation : '';
+
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        const isCorrect = option.dataset.correct === 'true';
+
+        // Limpiar estados erróneos previos
+        options.forEach(opt => opt.classList.remove('is-wrong'));
+
+        if (isCorrect) {
+          option.classList.add('is-correct');
+          // Deshabilitar todas las opciones
+          options.forEach(opt => { opt.disabled = true; });
+
+          if (feedbackBox) {
+            feedbackBox.className = 'quiz-feedback feedback-success';
+            feedbackTitle.innerHTML = '<i class="fa-solid fa-circle-check text-mint"></i> ¡Respuesta Correcta! Excelente trabajo.';
+            feedbackExp.textContent = explanation || 'Has respondido correctamente a la pregunta de autoevaluación.';
+            feedbackBox.style.display = 'block';
+          }
+        } else {
+          option.classList.add('is-wrong');
+          if (feedbackBox) {
+            feedbackBox.className = 'quiz-feedback feedback-error';
+            feedbackTitle.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: #ef4444;"></i> Respuesta incorrecta';
+            feedbackExp.textContent = 'Esa opción no es correcta. Analiza de nuevo el concepto e inténtalo con otra opción.';
+            feedbackBox.style.display = 'block';
+          }
+        }
+      });
+    });
+  });
+}
+
+/**
  * Escapar caracteres HTML
  */
 function escapeHtml(text) {
@@ -148,3 +255,4 @@ function escapeHtml(text) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+

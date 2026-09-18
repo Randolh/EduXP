@@ -1,0 +1,216 @@
+/* ==========================================================================
+   EduXP - Interactive Quiz & Practical Exercise Styles
+   ========================================================================== */
+
+/* Quiz Card Container */
+.quiz-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-left: 4px solid var(--mint-primary);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  margin: 2.5rem 0;
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.quiz-card:hover {
+  border-color: var(--mint-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.quiz-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.quiz-header i {
+  font-size: 1.1rem;
+}
+
+.quiz-badge {
+  font-size: 0.775rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mint-primary);
+}
+
+.quiz-question {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.85rem 1.15rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 0.925rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.quiz-option:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--border-accent);
+  transform: translateX(3px);
+}
+
+.quiz-option-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.quiz-option-radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.quiz-option:hover:not(:disabled) .quiz-option-radio {
+  border-color: var(--mint-primary);
+}
+
+/* Correct Option */
+.quiz-option.is-correct {
+  background: rgba(0, 245, 160, 0.1) !important;
+  border-color: var(--mint-primary) !important;
+  color: #fff;
+}
+
+.quiz-option.is-correct .quiz-option-radio {
+  border-color: var(--mint-primary);
+  background: var(--mint-primary);
+}
+
+.quiz-option.is-correct .quiz-option-radio::after {
+  background: var(--bg-base);
+}
+
+/* Wrong Option */
+.quiz-option.is-wrong {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: var(--danger-color, #ef4444) !important;
+  animation: quizShake 0.4s ease-in-out;
+}
+
+.quiz-option.is-wrong .quiz-option-radio {
+  border-color: var(--danger-color, #ef4444);
+}
+
+@keyframes quizShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.quiz-option:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+/* Quiz Feedback Box */
+.quiz-feedback {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.quiz-feedback.feedback-success {
+  background: rgba(0, 245, 160, 0.12);
+  border: 1px solid var(--mint-dim);
+  color: var(--text-main);
+}
+
+.quiz-feedback.feedback-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.quiz-feedback-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.quiz-feedback-title i {
+  font-size: 1rem;
+}
+
+.quiz-feedback-explanation {
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Exercise Solution Details Block (<details class="exercise-solution">)
+   ========================================================================== */
+details.exercise-solution {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin: 1.5rem 0;
+  padding: 0.85rem 1.25rem;
+  transition: border-color var(--transition-fast);
+}
+
+details.exercise-solution[open] {
+  border-color: var(--cyan-dim);
+}
+
+details.exercise-solution summary {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--cyan-primary);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color var(--transition-fast);
+}
+
+details.exercise-solution summary:hover {
+  color: #fff;
+}
+
+details.exercise-solution .solution-content {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}

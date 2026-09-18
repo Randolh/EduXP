@@ -73,7 +73,52 @@ export async function renderCourseDetail(container, courseSlug) {
               el('span', { textContent: 'Lecciones en Markdown' })
             )
           ),
-          // Requisitos previos recomendados
+          // 1. Objetivos de Aprendizaje (Lo que aprenderás)
+          course.objectives && course.objectives.length > 0
+            ? el('div', { className: 'course-objectives-box' },
+                el('div', { className: 'objectives-header' },
+                  icon('fa-solid fa-bullseye', 'text-mint'),
+                  el('span', { textContent: 'Lo que aprenderás en este curso' })
+                ),
+                el('ul', { className: 'objectives-grid' },
+                  course.objectives.map(obj =>
+                    el('li', { className: 'objective-item' },
+                      icon('fa-solid fa-circle-check'),
+                      el('span', { textContent: obj })
+                    )
+                  )
+                )
+              )
+            : null,
+
+          // 2. Proyecto Práctico del Curso
+          course.project
+            ? el('div', { className: 'course-project-box' },
+                el('div', { className: 'project-header' },
+                  el('div', { className: 'project-title-wrap' },
+                    icon('fa-solid fa-laptop-code', 'text-mint'),
+                    el('span', { className: 'project-name', textContent: course.project.title })
+                  ),
+                  el('span', { className: 'project-badge-tag' }, 'Proyecto Integrador')
+                ),
+                el('p', { className: 'project-desc', textContent: course.project.description }),
+                course.project.deliverables && course.project.deliverables.length > 0
+                  ? el('div', {},
+                      el('div', { className: 'project-deliverables-title', textContent: 'Qué construirás:' }),
+                      el('ul', { className: 'project-deliverables-list' },
+                        course.project.deliverables.map(deliv =>
+                          el('li', { className: 'deliverable-item' },
+                            icon('fa-solid fa-check'),
+                            el('span', { textContent: deliv })
+                          )
+                        )
+                      )
+                    )
+                  : null
+              )
+            : null,
+
+          // 3. Requisitos previos recomendados
           course.requirements && course.requirements.length > 0
             ? el('div', { className: 'course-requirements-box' },
                 el('div', { className: 'requirements-header' },
@@ -85,6 +130,24 @@ export async function renderCourseDetail(container, courseSlug) {
                     el('li', { className: 'requirement-item' },
                       icon('fa-solid fa-circle-check'),
                       el('span', { textContent: req })
+                    )
+                  )
+                )
+              )
+            : null,
+
+          // 4. Audiencia Objetivo
+          course.targetAudience && course.targetAudience.length > 0
+            ? el('div', { className: 'course-audience-box' },
+                el('div', { className: 'audience-header' },
+                  icon('fa-solid fa-users', 'text-cyan'),
+                  el('span', { textContent: '¿A quién va dirigido este curso?' })
+                ),
+                el('ul', { className: 'audience-list' },
+                  course.targetAudience.map(aud =>
+                    el('li', { className: 'audience-item' },
+                      icon('fa-solid fa-user-check'),
+                      el('span', { textContent: aud })
                     )
                   )
                 )

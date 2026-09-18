@@ -14,6 +14,26 @@
     "JavaScript moderno / ES6+ (funciones flecha, desestructuración y asincronía con async/await).",
     "Conceptos básicos del protocolo HTTP (métodos GET, POST, PUT, DELETE y códigos de estado comunes)."
   ],
+  "objectives": [
+    "Diseñar e implementar APIs RESTful que cumplan con los estándares de la industria y códigos de estado HTTP.",
+    "Estructurar un servidor Express escalable con enrutadores modulares y parámetros dinámicos.",
+    "Dominar la cadena de Middlewares para autenticación, registro de peticiones y validación de esquemas JSON.",
+    "Gestionar errores de forma centralizada garantizando respuestas JSON consistentes y seguras."
+  ],
+  "project": {
+    "title": "API REST Profesional de Gestión de Tareas (Task Manager API)",
+    "description": "Desarrollarás desde cero una API REST modular y completa para gestionar proyectos y tareas. Incluirá endpoints CRUD completos, validación de payloads con middlewares, autenticación simulada por API Key y manejo global de errores.",
+    "deliverables": [
+      "Servidor Express con soporte para JSON y enrutador modular /api/tasks",
+      "Colección completa de endpoints CRUD (GET, POST, PUT, DELETE) con códigos 200, 201, 400 y 404",
+      "Middlewares personalizados para validar que el título no esté vacío y medir el tiempo de respuesta"
+    ]
+  },
+  "targetAudience": [
+    "Desarrolladores con nociones de Node.js que desean aprender a crear APIs REST profesionales.",
+    "Desarrolladores Frontend que quieren aprender a construir sus propios backends para alimentar sus SPAs.",
+    "Cualquier programador que necesite comprender a fondo cómo funciona el protocolo HTTP y Express."
+  ],
   "modules": [
     {
       "id": "mod-express-1",

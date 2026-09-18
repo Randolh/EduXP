@@ -14,6 +14,26 @@
     "JavaScript moderno / ES6+ (funciones flecha, desestructuración, arrays y módulos import/export).",
     "Familiaridad básica con el navegador web y las herramientas de desarrollador (DevTools)."
   ],
+  "objectives": [
+    "Construir componentes funcionales modulares y reutilizables con buenas prácticas.",
+    "Dominar la sintaxis declarativa de JSX y el flujo de datos unidireccional con props.",
+    "Gestionar el estado reactivo de la aplicación con el hook useState.",
+    "Controlar eventos del usuario y renderizar listas dinámicas usando la función map y keys únicas."
+  ],
+  "project": {
+    "title": "Dashboard de Tareas y Hábitos Diarios",
+    "description": "Desarrollarás una aplicación SPA interactiva completa que permite registrar hábitos diarios, marcar metas como cumplidas, ver estadísticas en tiempo real y filtrar tareas por categoría.",
+    "deliverables": [
+      "Estructura modular con componentes Header, TaskList, TaskItem y StatsCard",
+      "Formulario interactivo para añadir tareas con validaciones",
+      "Contador reactivo de progreso porcentual calculado al vuelo"
+    ]
+  },
+  "targetAudience": [
+    "Desarrolladores con bases de JavaScript que quieren dominar la librería más demandada del frontend.",
+    "Estudiantes y autodidactas que buscan construir proyectos interactivos reales para su portafolio.",
+    "Programadores que vienen de jQuery u otros entornos y quieren migrar al paradigma reactivo."
+  ],
   "modules": [
     {
       "id": "mod-1",

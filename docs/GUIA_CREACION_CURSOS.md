@@ -77,6 +77,9 @@ Abre `courses.json` y agrega un nuevo objeto dentro del arreglo `"courses"`:
 | `totalLessons`| Number | **Sí** | Cantidad total de lecciones. Se usa para calcular la barra de progreso. |
 | `tags` | Array | No | Palabras clave que los estudiantes pueden escribir en la barra de búsqueda. |
 | `requirements` | Array | No | Conocimientos o requisitos previos necesarios para tomar el curso (ej. `["Node.js básico", "JavaScript ES6"]`). |
+| `objectives` | Array | No | Habilidades clave que el estudiante aprenderá al terminar el curso. |
+| `project` | Objeto | No | Proyecto práctico integrador del curso (`title`, `description`, `deliverables`). |
+| `targetAudience` | Array | No | Perfiles de desarrolladores a quienes está orientado el curso. |
 
 ---
 
@@ -99,6 +102,22 @@ Crea el archivo `courses/<slug-del-curso>/course.json`. Este archivo define la e
   "requirements": [
     "Manejo elemental de la línea de comandos / terminal.",
     "Conceptos básicos de redes (puertos, protocolo TCP/IP)."
+  ],
+  "objectives": [
+    "Crear imágenes ligeras con Dockerfile.",
+    "Orquestar múltiples contenedores con Docker Compose."
+  ],
+  "project": {
+    "title": "Entorno Multi-Contenedor de Microservicios",
+    "description": "Configurarás un stack completo con Node.js, Redis y Nginx orquestado con Docker Compose.",
+    "deliverables": [
+      "Dockerfile multi-stage optimizado",
+      "Archivo docker-compose.yml con volúmenes y redes aisladas"
+    ]
+  },
+  "targetAudience": [
+    "Desarrolladores backend que quieren simplificar sus despliegues.",
+    "Estudiantes de DevOps y arquitectura de software."
   ],
   "modules": [
     {

@@ -74,6 +74,9 @@ El archivo raíz `courses.json` contiene la lista de cursos que se mostrarán en
 | `totalLessons`| Number | Sí | Cantidad total de lecciones para el cálculo de porcentaje. |
 | `tags` | Array | No | Etiquetas clave para el buscador en tiempo real. |
 | `requirements` | Array | No | Requisitos o conocimientos previos recomendados (ej. `["Node.js", "JS ES6"]`). Se muestran en las tarjetas y habilitan la búsqueda. |
+| `objectives` | Array | No | Habilidades clave que el estudiante aprenderá al terminar el curso. |
+| `project` | Objeto | No | Proyecto práctico integrador del curso (`title`, `description`, `deliverables`). |
+| `targetAudience` | Array | No | Perfiles de desarrolladores a quienes está orientado el curso. |
 
 ---
 
@@ -98,6 +101,22 @@ Cada curso debe tener su propio `course.json` dentro de `courses/<slug>/course.j
   "requirements": [
     "Conocimientos básicos de HTML5 y CSS3.",
     "JavaScript moderno / ES6+ (arrow functions, desestructuración, arrays)."
+  ],
+  "objectives": [
+    "Construir componentes funcionales modulares y reutilizables.",
+    "Gestionar el estado reactivo de la aplicación con useState."
+  ],
+  "project": {
+    "title": "Dashboard de Tareas y Hábitos",
+    "description": "Una SPA completa e interactiva con filtrado y estadísticas.",
+    "deliverables": [
+      "Componentes modulares",
+      "Estado reactivo con useState"
+    ]
+  },
+  "targetAudience": [
+    "Desarrolladores JavaScript que quieren aprender React.",
+    "Estudiantes que buscan proyectos para su portafolio."
   ],
   "modules": [
     {
@@ -158,3 +177,47 @@ Puedes insertar alertas visuales utilizando el estándar moderno de GitHub:
 > [!WARNING]
 > Advertencias sobre errores comunes, breaking changes o problemas de seguridad.
 ```
+
+### Quizzes Interactivos de Autoevaluación (`[!QUIZ]`)
+
+EduXP transforma automáticamente bloques de autoevaluación en widgets interactivos con retroalimentación instantánea:
+
+```markdown
+> [!QUIZ]
+> ¿Qué método HTTP se utiliza para crear un nuevo recurso?
+> - [ ] GET
+> - [x] POST
+> - [ ] DELETE
+>
+> **Explicación**: El método POST se utiliza para enviar datos y crear recursos en el servidor.
+```
+
+* `[x]`: Marca la opción correcta.
+* `[ ]`: Marca las opciones distractoras incorrectas.
+* `**Explicación**:` (Opcional): Texto pedagógico mostrado tras responder correctamente.
+
+### Ejercicios Prácticos con Solución Desplegable
+
+Para permitir que el estudiante intente resolver el reto antes de ver la respuesta:
+
+```markdown
+## 🛠️ Ejercicio Práctico: [Nombre del Reto]
+
+**Objetivo**: [Descripción concisa].
+
+**Instrucciones**:
+1. Paso 1...
+2. Paso 2...
+
+<details class="exercise-solution">
+<summary>💡 Ver solución explicada paso a paso</summary>
+
+<div class="solution-content">
+```javascript
+// Código de solución
+```
+**Explicación**: ...
+</div>
+</details>
+```
+

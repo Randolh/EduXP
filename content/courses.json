@@ -14,7 +14,26 @@
       "badgeColor": "cyan",
       "totalLessons": 3,
       "tags": ["React", "JavaScript", "JSX", "Frontend", "UI"],
-      "requirements": ["HTML5 y CSS3 básico", "JavaScript moderno (ES6+)"]
+      "requirements": ["HTML5 y CSS3 básico", "JavaScript moderno (ES6+)"],
+      "objectives": [
+        "Construir componentes funcionales modulares y reutilizables.",
+        "Dominar la sintaxis declarativa de JSX y el flujo de datos unidireccional (props).",
+        "Gestionar estado reactivo y eventos con el hook useState.",
+        "Desarrollar una interfaz dinámica interactiva con renderizado condicional."
+      ],
+      "project": {
+        "title": "Dashboard de Tareas y Hábitos Diarios",
+        "description": "Una aplicación web interactiva con lista de tareas, filtros por estado, contador de progreso en tiempo real y persistencia local.",
+        "deliverables": [
+          "Arquitectura basada en componentes funcionales limpios",
+          "Manejo de estado complejo con useState y validación de entradas",
+          "Filtrado dinámico de tareas (Todas / Pendientes / Completadas)"
+        ]
+      },
+      "targetAudience": [
+        "Desarrolladores con bases de HTML, CSS y JavaScript que quieren aprender React.",
+        "Estudiantes que buscan construir proyectos frontend prácticos para su portafolio."
+      ]
     },
     {
       "id": "nodejs-backend",
@@ -28,7 +47,26 @@
       "badgeColor": "mint",
       "totalLessons": 2,
       "tags": ["Node.js", "Backend", "JavaScript", "NPM", "Event Loop"],
-      "requirements": ["Fundamentos de JavaScript", "Asincronía (Promesas)", "Terminal básica"]
+      "requirements": ["Fundamentos de JavaScript", "Asincronía (Promesas)", "Terminal básica"],
+      "objectives": [
+        "Comprender el modelo de concurrencia no bloqueante y el Event Loop de Node.js.",
+        "Gestionar módulos nativos y de terceros usando CommonJS y ES Modules.",
+        "Administrar paquetes, scripts y dependencias profesionales con NPM.",
+        "Construir scripts de automatización e interactuar con el sistema de archivos (fs)."
+      ],
+      "project": {
+        "title": "Herramienta CLI y Analizador de Archivos",
+        "description": "Una utilidad de línea de comandos capaz de inspeccionar directorios, leer archivos de texto asíncronamente y formatear reportes JSON.",
+        "deliverables": [
+          "Manejo de módulos nativos fs/promises y path",
+          "Script ejecutable desde terminal con paso de argumentos",
+          "Publicación y gestión de scripts en package.json"
+        ]
+      },
+      "targetAudience": [
+        "Desarrolladores frontend que quieren expandir su perfil hacia el backend.",
+        "Programadores que desean dominar la asincronía y el ecosistema de NPM."
+      ]
     },
     {
       "id": "express-api-rest",
@@ -42,7 +80,26 @@
       "badgeColor": "orange",
       "totalLessons": 2,
       "tags": ["Express", "API REST", "Node.js", "HTTP", "JSON"],
-      "requirements": ["Node.js básico", "JavaScript moderno (ES6+)", "Conceptos básicos de HTTP"]
+      "requirements": ["Node.js básico", "JavaScript moderno (ES6+)", "Conceptos básicos de HTTP"],
+      "objectives": [
+        "Diseñar arquitecturas limpias de APIs REST con verbos y convenciones HTTP estándar.",
+        "Configurar servidores Express con enrutamiento dinámico y parámetros de URL.",
+        "Crear Middlewares para logging, autenticación y validación de datos JSON.",
+        "Estandarizar respuestas y códigos de estado HTTP (200, 201, 400, 404, 500)."
+      ],
+      "project": {
+        "title": "API REST Profesional de Gestión de Tareas",
+        "description": "Un servicio web completo con endpoints CRUD, validación de esquemas en middlewares, filtrado por query params y manejo centralizado de errores.",
+        "deliverables": [
+          "Endpoints RESTful: GET, POST, PUT, DELETE",
+          "Middleware custom de autenticación por API Key y logging",
+          "Validación de payloads JSON con respuestas de error descriptivas"
+        ]
+      },
+      "targetAudience": [
+        "Desarrolladores con bases de Node.js que necesitan crear backends y APIs para clientes web o móviles.",
+        "Cualquier programador que desee conectar aplicaciones frontend con un servidor seguro."
+      ]
     }
   ]
 }

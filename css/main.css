@@ -18,6 +18,7 @@
 @import url('components/toast.css');
 @import url('components/breadcrumbs.css');
 @import url('components/codeblocks.css');
+@import url('components/quiz.css');
 
 /* 3. Feature Views */
 @import url('views/hero.css');
