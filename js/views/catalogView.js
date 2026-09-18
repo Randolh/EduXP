@@ -36,7 +36,8 @@ export async function renderCatalog(container, queryParams = {}) {
       const matchesSearch = !currentSearch ||
         course.title.toLowerCase().includes(searchLower) ||
         course.description.toLowerCase().includes(searchLower) ||
-        (course.tags && course.tags.some(t => t.toLowerCase().includes(searchLower)));
+        (course.tags && course.tags.some(t => t.toLowerCase().includes(searchLower))) ||
+        (course.requirements && course.requirements.some(r => r.toLowerCase().includes(searchLower)));
 
       return matchesCategory && matchesSearch;
     });

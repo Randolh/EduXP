@@ -13,7 +13,8 @@
       "icon": "fa-brands fa-react",
       "badgeColor": "cyan",
       "totalLessons": 3,
-      "tags": ["React", "JavaScript", "JSX", "Frontend", "UI"]
+      "tags": ["React", "JavaScript", "JSX", "Frontend", "UI"],
+      "requirements": ["HTML5 y CSS3 básico", "JavaScript moderno (ES6+)"]
     },
     {
       "id": "nodejs-backend",
@@ -26,7 +27,8 @@
       "icon": "fa-brands fa-node-js",
       "badgeColor": "mint",
       "totalLessons": 2,
-      "tags": ["Node.js", "Backend", "JavaScript", "NPM", "Event Loop"]
+      "tags": ["Node.js", "Backend", "JavaScript", "NPM", "Event Loop"],
+      "requirements": ["Fundamentos de JavaScript", "Asincronía (Promesas)", "Terminal básica"]
     },
     {
       "id": "express-api-rest",
@@ -39,7 +41,8 @@
       "icon": "fa-solid fa-server",
       "badgeColor": "orange",
       "totalLessons": 2,
-      "tags": ["Express", "API REST", "Node.js", "HTTP", "JSON"]
+      "tags": ["Express", "API REST", "Node.js", "HTTP", "JSON"],
+      "requirements": ["Node.js básico", "JavaScript moderno (ES6+)", "Conceptos básicos de HTTP"]
     }
   ]
 }

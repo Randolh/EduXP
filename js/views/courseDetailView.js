@@ -72,7 +72,24 @@ export async function renderCourseDetail(container, courseSlug) {
               icon('fa-brands fa-markdown', 'text-mint'),
               el('span', { textContent: 'Lecciones en Markdown' })
             )
-          )
+          ),
+          // Requisitos previos recomendados
+          course.requirements && course.requirements.length > 0
+            ? el('div', { className: 'course-requirements-box' },
+                el('div', { className: 'requirements-header' },
+                  icon('fa-solid fa-clipboard-check', 'text-mint'),
+                  el('span', { textContent: 'Requisitos previos recomendados' })
+                ),
+                el('ul', { className: 'requirements-list' },
+                  course.requirements.map(req =>
+                    el('li', { className: 'requirement-item' },
+                      icon('fa-solid fa-circle-check'),
+                      el('span', { textContent: req })
+                    )
+                  )
+                )
+              )
+            : null
         ),
 
         // Tarjeta de Acción / Progreso

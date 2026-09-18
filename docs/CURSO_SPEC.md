@@ -52,7 +52,8 @@ El archivo raíz `courses.json` contiene la lista de cursos que se mostrarán en
       "icon": "fa-brands fa-react",
       "badgeColor": "cyan",
       "totalLessons": 3,
-      "tags": ["React", "JavaScript", "JSX"]
+      "tags": ["React", "JavaScript", "JSX"],
+      "requirements": ["HTML5 y CSS3 básico", "JavaScript moderno (ES6+)"]
     }
   ]
 }
@@ -72,6 +73,7 @@ El archivo raíz `courses.json` contiene la lista de cursos que se mostrarán en
 | `badgeColor` | String | No | Color temático para badges (`mint`, `cyan`, `purple`, `orange`). |
 | `totalLessons`| Number | Sí | Cantidad total de lecciones para el cálculo de porcentaje. |
 | `tags` | Array | No | Etiquetas clave para el buscador en tiempo real. |
+| `requirements` | Array | No | Requisitos o conocimientos previos recomendados (ej. `["Node.js", "JS ES6"]`). Se muestran en las tarjetas y habilitan la búsqueda. |
 
 ---
 
@@ -93,6 +95,10 @@ Cada curso debe tener su propio `course.json` dentro de `courses/<slug>/course.j
   "icon": "fa-brands fa-react",
   "badgeColor": "cyan",
   "author": "Nombre del Instructor o Comunidad",
+  "requirements": [
+    "Conocimientos básicos de HTML5 y CSS3.",
+    "JavaScript moderno / ES6+ (arrow functions, desestructuración, arrays)."
+  ],
   "modules": [
     {
       "id": "modulo-1",

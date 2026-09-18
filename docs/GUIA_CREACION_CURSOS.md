@@ -58,7 +58,8 @@ Abre `courses.json` y agrega un nuevo objeto dentro del arreglo `"courses"`:
   "icon": "fa-brands fa-docker",
   "badgeColor": "cyan",
   "totalLessons": 4,
-  "tags": ["Docker", "Contenedores", "DevOps", "Backend", "Linux"]
+  "tags": ["Docker", "Contenedores", "DevOps", "Backend", "Linux"],
+  "requirements": ["Terminal y Linux básico", "Fundamentos de redes (IP, puertos)"]
 }
 ```
 
@@ -75,6 +76,7 @@ Abre `courses.json` y agrega un nuevo objeto dentro del arreglo `"courses"`:
 | `badgeColor` | String | No | Color temático para badges: `mint` (verde), `cyan` (azul claro), `purple` (morado), `orange` (naranja). |
 | `totalLessons`| Number | **Sí** | Cantidad total de lecciones. Se usa para calcular la barra de progreso. |
 | `tags` | Array | No | Palabras clave que los estudiantes pueden escribir en la barra de búsqueda. |
+| `requirements` | Array | No | Conocimientos o requisitos previos necesarios para tomar el curso (ej. `["Node.js básico", "JavaScript ES6"]`). |
 
 ---
 
@@ -94,6 +96,10 @@ Crea el archivo `courses/<slug-del-curso>/course.json`. Este archivo define la e
   "icon": "fa-brands fa-docker",
   "badgeColor": "cyan",
   "author": "Comunidad Abierta",
+  "requirements": [
+    "Manejo elemental de la línea de comandos / terminal.",
+    "Conceptos básicos de redes (puertos, protocolo TCP/IP)."
+  ],
   "modules": [
     {
       "id": "mod-1",

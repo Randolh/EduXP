@@ -9,6 +9,11 @@
   "icon": "fa-brands fa-node-js",
   "badgeColor": "mint",
   "author": "EduXP Community",
+  "requirements": [
+    "Fundamentos sólidos de JavaScript (variables, funciones, tipos de datos y objetos).",
+    "Conceptos de asincronía en JavaScript (Callbacks, Promesas y sintaxis async/await).",
+    "Uso básico de la terminal o línea de comandos (navegar carpetas, ejecutar comandos simples)."
+  ],
   "modules": [
     {
       "id": "mod-node-1",

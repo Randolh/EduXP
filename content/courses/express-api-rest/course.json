@@ -9,6 +9,11 @@
   "icon": "fa-solid fa-server",
   "badgeColor": "orange",
   "author": "EduXP Community",
+  "requirements": [
+    "Fundamentos de Node.js (sistema de módulos, gestión de paquetes con npm y package.json).",
+    "JavaScript moderno / ES6+ (funciones flecha, desestructuración y asincronía con async/await).",
+    "Conceptos básicos del protocolo HTTP (métodos GET, POST, PUT, DELETE y códigos de estado comunes)."
+  ],
   "modules": [
     {
       "id": "mod-express-1",

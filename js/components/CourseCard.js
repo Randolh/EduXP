@@ -47,10 +47,35 @@ export function createCourseCard(course) {
     )
   );
 
-  // 4. Cuerpo de la Tarjeta
+  // 4. Requisitos Previos (Chips)
+  let requirementsElement = null;
+  if (course.requirements && Array.isArray(course.requirements) && course.requirements.length > 0) {
+    const chips = course.requirements.slice(0, 2).map(req =>
+      el('span', { className: 'requirement-chip', textContent: req })
+    );
+    if (course.requirements.length > 2) {
+      chips.push(
+        el('span', {
+          className: 'requirement-chip',
+          title: course.requirements.slice(2).join(', '),
+          textContent: `+${course.requirements.length - 2}`
+        })
+      );
+    }
+    requirementsElement = el('div', { className: 'card-requirements' },
+      el('span', { className: 'card-requirements-label' },
+        icon('fa-solid fa-list-check'),
+        document.createTextNode(' Requisitos: ')
+      ),
+      el('div', { className: 'card-requirements-tags' }, chips)
+    );
+  }
+
+  // 5. Cuerpo de la Tarjeta
   const cardBody = el('div', { className: 'card-body' },
     el('h3', { className: 'card-title', textContent: course.title }),
     el('p', { className: 'card-desc', textContent: course.description }),
+    requirementsElement,
     progressBar,
     metaRow
   );

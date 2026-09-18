@@ -9,6 +9,11 @@
   "icon": "fa-brands fa-react",
   "badgeColor": "cyan",
   "author": "EduXP Community",
+  "requirements": [
+    "Conocimientos básicos de HTML5 y CSS3 (etiquetas comunes, maquetación y selectores).",
+    "JavaScript moderno / ES6+ (funciones flecha, desestructuración, arrays y módulos import/export).",
+    "Familiaridad básica con el navegador web y las herramientas de desarrollador (DevTools)."
+  ],
   "modules": [
     {
       "id": "mod-1",
