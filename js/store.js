@@ -29,6 +29,7 @@ class Store {
       completedLessons: {}, // { [courseId]: [lessonId1, lessonId2] }
       lastVisited: {},      // { [courseId]: lessonId }
       courseStatus: {},     // { [courseId]: 'in_progress' | 'on_hold' | 'completed' }
+      cancelledCourses: [], // [courseId, ...] cursos cancelados que no deben volver a mostrarse
       favorites: []
     };
   }
@@ -60,7 +61,8 @@ class Store {
         return {
           ...this.getDefaultData(),
           ...parsed,
-          courseStatus: parsed.courseStatus || {}
+          courseStatus: parsed.courseStatus || {},
+          cancelledCourses: Array.isArray(parsed.cancelledCourses) ? parsed.cancelledCourses : []
         };
       }
     } catch (e) {
@@ -196,8 +198,13 @@ class Store {
       const cloudRecords = await fetchUserProgress(user.id);
 
       // 2. Fusionar lecciones completadas de la nube hacia el almacenamiento local del usuario
+      // IMPORTANTE: ignorar cursos que el usuario canceló explícitamente en este dispositivo
+      const cancelled = new Set(this.data.cancelledCourses || []);
       let hasNewData = false;
       cloudRecords.forEach(rec => {
+        // Si el curso fue cancelado, ignorarlo completamente para que no reaparezca
+        if (cancelled.has(rec.course_slug)) return;
+
         if (!this.data.completedLessons[rec.course_slug]) {
           this.data.completedLessons[rec.course_slug] = [];
         }
@@ -325,6 +332,10 @@ class Store {
   getCourseStatus(courseSlug, totalLessons = 0) {
     if (!this.currentUser) return 'not_started';
 
+    // Los cursos cancelados no tienen estado activo (no aparecen en biblioteca)
+    const cancelled = this.data.cancelledCourses || [];
+    if (cancelled.includes(courseSlug)) return 'not_started';
+
     const stats = this.getCourseStats(courseSlug, totalLessons);
     if (totalLessons > 0 && stats.completed >= totalLessons) {
       return 'completed';
@@ -353,9 +364,13 @@ class Store {
 
     if (!this.data.courseStatus) this.data.courseStatus = {};
 
+    const cancelled = new Set(this.data.cancelledCourses || []);
     const activeCandidates = [];
 
     allCourses.forEach(c => {
+      // Los cursos cancelados no vuelven a aparecer nunca
+      if (cancelled.has(c.slug)) return;
+
       const total = c.totalLessons || 0;
       const stats = this.getCourseStats(c.slug, total);
 
@@ -509,24 +524,64 @@ class Store {
       delete this.data.lastVisited[courseSlug];
     }
 
-    // 3. Eliminar estado explícito en courseStatus
+    // 3. Marcar el estado como 'not_started' (eliminar de courseStatus)
     if (this.data.courseStatus && this.data.courseStatus[courseSlug]) {
       delete this.data.courseStatus[courseSlug];
     }
 
-    // 4. Guardar localmente
+    // 4. Agregar a la lista de cancelledCourses para que syncWithCloud lo ignore al recargar
+    if (!Array.isArray(this.data.cancelledCourses)) {
+      this.data.cancelledCourses = [];
+    }
+    if (!this.data.cancelledCourses.includes(courseSlug)) {
+      this.data.cancelledCourses.push(courseSlug);
+    }
+
+    // 5. Guardar localmente
     this.save();
 
-    // 5. Emitir evento para actualizar toda la interfaz
+    // 6. Emitir evento para actualizar toda la interfaz
     window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
 
-    // 6. Sincronizar borrado con Supabase
+    // 7. Sincronizar borrado con Supabase
     try {
       await resetCourseProgressInCloud(this.currentUser.id, courseSlug);
     } catch (e) {
       console.warn('Error borrando progreso del curso en Supabase:', e);
     }
 
+    return true;
+  }
+
+  /**
+   * Elimina un curso de la biblioteca sin importar su estado (lo saca completamente de on_hold).
+   * El curso queda como 'not_started' y desaparece de la Biblioteca.
+   * @param {string} courseSlug
+   */
+  removeCourseFromLibrary(courseSlug) {
+    if (!this.currentUser) return false;
+
+    // Eliminar completedLessons (sin tocar la nube, no se borra progreso en este caso)
+    // Solo se limpia el estado local para que salga de la biblioteca
+    if (this.data.lastVisited && this.data.lastVisited[courseSlug]) {
+      delete this.data.lastVisited[courseSlug];
+    }
+
+    // Quitar de courseStatus (on_hold)
+    if (this.data.courseStatus && this.data.courseStatus[courseSlug]) {
+      delete this.data.courseStatus[courseSlug];
+    }
+
+    // Agregar a cancelledCourses para que no reaparezca desde la nube
+    if (!Array.isArray(this.data.cancelledCourses)) {
+      this.data.cancelledCourses = [];
+    }
+    if (!this.data.cancelledCourses.includes(courseSlug)) {
+      this.data.cancelledCourses.push(courseSlug);
+    }
+
+    this.save();
+    window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
     return true;
   }
 

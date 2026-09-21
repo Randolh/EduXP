@@ -30,12 +30,17 @@ export async function renderLibrary(container) {
       // 1. Aplicar límite estricto de máximo 3 cursos en progreso
       store.enforceMaxActiveLimit(allCourses);
 
+      const cancelled = new Set(store.data.cancelledCourses || []);
+
       const inProgress = [];
       const completed = [];
       const onHold = [];
       const notStarted = [];
 
       allCourses.forEach(course => {
+        // Ignorar cursos cancelados (no deben aparecer en la biblioteca)
+        if (cancelled.has(course.slug)) return;
+
         const total = course.totalLessons || 0;
         const status = store.getCourseStatus(course.slug, total);
         const stats = store.getCourseStats(course.slug, total);
@@ -53,6 +58,7 @@ export async function renderLibrary(container) {
             onHold.push({ ...enriched, status: 'on_hold' });
           }
         } else {
+          // not_started: no se muestra en la biblioteca
           notStarted.push(enriched);
         }
       });
@@ -317,13 +323,23 @@ function createLibraryCard(course, allCourses, onRefresh) {
       ' Activar'
     );
 
-    secondaryActionBtn = el('a', {
-      href: `#/course/${course.slug}`,
+    secondaryActionBtn = el('button', {
+      type: 'button',
       className: 'btn btn-ghost btn-sm library-secondary-btn text-dim',
-      title: 'Ver temario del curso'
+      title: 'Eliminar este curso de tu biblioteca (no borra tu progreso guardado)',
+      onClick: () => {
+        const confirmed = window.confirm(
+          `¿Eliminar "${course.title}" de tu biblioteca?\n\nEl curso desaparecerá de "En Espera". Puedes volver a encontrarlo en el catálogo y comenzarlo de nuevo cuando quieras.`
+        );
+        if (confirmed) {
+          store.removeCourseFromLibrary(course.slug);
+          showToast(`"${course.title}" eliminado de tu biblioteca.`, 'info');
+          onRefresh();
+        }
+      }
     },
-      icon('fa-solid fa-list-ol'),
-      ' Temario'
+      icon('fa-solid fa-xmark'),
+      ' Eliminar'
     );
   }
 
