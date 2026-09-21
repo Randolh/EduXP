@@ -78,6 +78,8 @@ export function createCourseCard(course) {
 
   function renderDynamicState() {
     const stats = store.getCourseStats(course.slug, totalLessons);
+    const courseStatus = store.getCourseStatus(course.slug, totalLessons);
+
     clearElement(progressContainer);
     progressContainer.appendChild(createProgressBar({
       percentage: stats.percentage,
@@ -87,12 +89,47 @@ export function createCourseCard(course) {
     }));
 
     clearElement(footerAction);
-    const actionBtnText = stats.completed > 0 ? 'Continuar Curso' : 'Comenzar Curso';
-    const actionBtn = el('a', { href: `#/course/${course.slug}`, className: 'btn btn-primary btn-block btn-sm' },
-      icon('fa-solid fa-play'),
-      document.createTextNode(` ${actionBtnText}`)
-    );
-    footerAction.appendChild(actionBtn);
+
+    if (courseStatus === 'completed') {
+      // Terminado: badge de éxito + ir al curso
+      const doneEl = el('div', { className: 'card-status-row' },
+        el('span', { className: 'badge badge-mint', style: { flex: '1' } },
+          icon('fa-solid fa-circle-check'), ' Completado'
+        ),
+        el('a', { href: `#/course/${course.slug}`, className: 'btn btn-ghost btn-sm', title: 'Ver temario' },
+          icon('fa-solid fa-rotate-right'), ' Repasar'
+        )
+      );
+      footerAction.appendChild(doneEl);
+
+    } else if (courseStatus === 'in_progress') {
+      // En progreso: botón verde "Continuar"
+      const actionBtn = el('a', { href: `#/course/${course.slug}`, className: 'btn btn-primary btn-block btn-sm' },
+        icon('fa-solid fa-circle-play'),
+        document.createTextNode(' Continuar Curso')
+      );
+      footerAction.appendChild(actionBtn);
+
+    } else if (courseStatus === 'on_hold') {
+      // En espera: botón secundario con ícono de pausa
+      const row = el('div', { className: 'card-status-row' },
+        el('span', { className: 'card-status-badge on-hold-badge' },
+          icon('fa-solid fa-bookmark'), ' En Espera'
+        ),
+        el('a', { href: `#/course/${course.slug}`, className: 'btn btn-secondary btn-sm', title: 'Ver temario y activar' },
+          icon('fa-solid fa-play'), ' Ver curso'
+        )
+      );
+      footerAction.appendChild(row);
+
+    } else {
+      // No iniciado: botón verde "Comenzar"
+      const actionBtn = el('a', { href: `#/course/${course.slug}`, className: 'btn btn-primary btn-block btn-sm' },
+        icon('fa-solid fa-play'),
+        document.createTextNode(' Comenzar Curso')
+      );
+      footerAction.appendChild(actionBtn);
+    }
   }
 
   renderDynamicState();

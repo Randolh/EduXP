@@ -81,7 +81,7 @@ class Router {
           await store.waitForAuth();
           if (!store.isAuthenticated()) {
             console.warn(`Ruta protegida (${path}): Inicio de sesión obligatorio.`);
-            const fallbackPath = matched.params?.slug ? `#/course/${matched.params.slug}` : '#/courses';
+            const fallbackPath = matched.params?.slug ? `/course/${matched.params.slug}` : '/courses';
             window.location.hash = fallbackPath;
             openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
             return;

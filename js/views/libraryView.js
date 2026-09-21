@@ -15,7 +15,7 @@ export async function renderLibrary(container) {
 
   await store.waitForAuth();
   if (!store.isAuthenticated()) {
-    window.location.hash = '#/courses';
+    window.location.hash = '/courses';
     openAuthModal('login', 'Debes iniciar sesión para acceder a tu biblioteca personalizada.');
     return;
   }

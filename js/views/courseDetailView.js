@@ -187,39 +187,71 @@ export async function renderCourseDetail(container, courseSlug) {
               );
             }
 
-            const ctaBtn = el('a', {
-              href: isAuthenticated ? `#/course/${courseSlug}/lesson/${targetLesson.id}` : 'javascript:void(0)',
-              className: 'btn btn-primary btn-block btn-lg'
-            },
-              icon(isAuthenticated ? 'fa-solid fa-play' : 'fa-solid fa-lock'),
-              ` ${isAuthenticated ? (stats.completed > 0 ? 'Continuar Lección' : 'Comenzar Ahora') : 'Iniciar Sesión para Comenzar'}`
-            );
+            const courseStatus = store.getCourseStatus(courseSlug, totalLessonsCount);
+            const isOnHold = courseStatus === 'on_hold';
 
+            // Determinar label e ícono del botón según estado
+            let ctaBtnLabel, ctaBtnIcon, ctaBtnClass;
             if (!isAuthenticated) {
-              ctaBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
-              });
+              ctaBtnLabel = 'Iniciar Sesión para Comenzar';
+              ctaBtnIcon  = 'fa-solid fa-lock';
+              ctaBtnClass = 'btn btn-primary btn-block btn-lg';
+            } else if (isOnHold) {
+              ctaBtnLabel = 'Activar y Comenzar';
+              ctaBtnIcon  = 'fa-solid fa-play';
+              ctaBtnClass = 'btn btn-secondary btn-block btn-lg';
+            } else if (stats.completed > 0) {
+              ctaBtnLabel = 'Continuar Lección';
+              ctaBtnIcon  = 'fa-solid fa-play';
+              ctaBtnClass = 'btn btn-primary btn-block btn-lg';
             } else {
-              ctaBtn.addEventListener('click', async (e) => {
-                const allCourses = await api.getCourses();
-                const check = store.canStartOrResumeCourse(courseSlug, allCourses);
-                if (!check.allowed) {
-                  e.preventDefault();
-                  const activeCourses = allCourses.filter(c => check.activeSlugs.includes(c.slug));
-                  openCourseLimitModal({
-                    courseToStart: course,
-                    activeCourses,
-                    onProceed: () => {
-                      window.location.hash = `#/course/${courseSlug}/lesson/${targetLesson.id}`;
-                    }
-                  });
-                }
-              });
+              ctaBtnLabel = 'Comenzar Ahora';
+              ctaBtnIcon  = 'fa-solid fa-play';
+              ctaBtnClass = 'btn btn-primary btn-block btn-lg';
             }
 
-            const courseStatus = store.getCourseStatus(courseSlug, totalLessonsCount);
-            const isOnWatchlist = courseStatus === 'on_hold';
+            // Usar siempre href=void para controlar la navegación desde el click handler
+            const ctaBtn = el('a', {
+              href: 'javascript:void(0)',
+              className: ctaBtnClass
+            },
+              icon(ctaBtnIcon),
+              ` ${ctaBtnLabel}`
+            );
+
+            ctaBtn.addEventListener('click', async (e) => {
+              e.preventDefault();
+
+              if (!isAuthenticated) {
+                openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
+                return;
+              }
+
+              const allCourses = await api.getCourses();
+              const check = store.canStartOrResumeCourse(courseSlug, allCourses);
+
+              if (!check.allowed) {
+                const activeCourses = allCourses.filter(c => check.activeSlugs.includes(c.slug));
+                openCourseLimitModal({
+                  courseToStart: course,
+                  activeCourses,
+                  onProceed: () => {
+                    window.location.hash = `/course/${courseSlug}/lesson/${targetLesson.id}`;
+                  }
+                });
+                return;
+              }
+
+              // Si estaba en espera, activarlo primero
+              if (isOnHold) {
+                store.setCourseStatus(courseSlug, 'in_progress', allCourses);
+              }
+
+              window.location.hash = `/course/${courseSlug}/lesson/${targetLesson.id}`;
+            });
+
+            const isOnWatchlist = isOnHold;
+
 
             const watchlistBtn = el('button', {
               type: 'button',
@@ -288,18 +320,23 @@ export async function renderCourseDetail(container, courseSlug) {
       )
     );
 
-    // Re-renderizar si cambia el estado de autenticación o progreso mientras está en esta vista
+    // Re-renderizar si cambia el estado de autenticación mientras está en esta vista
+    // IMPORTANTE: solo escuchar cambios de auth, NO de progreso (eduxp:progress-updated)
+    // ya que ese evento se dispara durante la navegación de lecciones y causaría re-render
     const onAuthUpdate = () => {
-      if (window.location.hash.startsWith(`#/course/${courseSlug}`)) {
+      const currentHash = window.location.hash;
+      // Solo re-renderizar si estamos EXACTAMENTE en la vista de detalle del curso
+      // (no en una sub-ruta como /lesson/)
+      const isExactDetailRoute = currentHash === `#/course/${courseSlug}` ||
+        currentHash === `#/course/${courseSlug}/`;
+      if (isExactDetailRoute) {
         window.removeEventListener('eduxp:auth-changed', onAuthUpdate);
         window.removeEventListener('eduxp:cloud-synced', onAuthUpdate);
-        window.removeEventListener('eduxp:progress-updated', onAuthUpdate);
         renderCourseDetail(container, courseSlug);
       }
     };
-    window.addEventListener('eduxp:auth-changed', onAuthUpdate, { once: true });
-    window.addEventListener('eduxp:cloud-synced', onAuthUpdate, { once: true });
-    window.addEventListener('eduxp:progress-updated', onAuthUpdate, { once: true });
+    window.addEventListener('eduxp:auth-changed', onAuthUpdate);
+    window.addEventListener('eduxp:cloud-synced', onAuthUpdate);
 
     // 2. Sección del Temario (Syllabus)
     const syllabusSection = el('section', { className: 'syllabus-container' },

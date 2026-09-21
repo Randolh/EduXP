@@ -123,7 +123,7 @@ class Store {
     }));
 
     if (window.location.hash.includes('/lesson/')) {
-      window.location.hash = '#/courses';
+      window.location.hash = '/courses';
     }
 
     try {
@@ -175,7 +175,7 @@ class Store {
 
           // 2. Si el usuario estaba dentro de una lección protegida, expulsar al catálogo
           if (window.location.hash.includes('/lesson/')) {
-            window.location.hash = '#/courses';
+            window.location.hash = '/courses';
           }
         }
 

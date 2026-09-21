@@ -25,7 +25,7 @@ export async function renderLesson(container, courseSlug, lessonId) {
   try {
     await store.waitForAuth();
     if (!store.isAuthenticated()) {
-      window.location.hash = `#/course/${courseSlug}`;
+      window.location.hash = `/course/${courseSlug}`;
       openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
       return;
     }
@@ -33,14 +33,14 @@ export async function renderLesson(container, courseSlug, lessonId) {
     const allCourses = await api.getCourses();
     const check = store.canStartOrResumeCourse(courseSlug, allCourses);
     if (!check.allowed) {
-      window.location.hash = `#/course/${courseSlug}`;
+      window.location.hash = `/course/${courseSlug}`;
       const course = await api.getCourse(courseSlug);
       const activeCourses = allCourses.filter(c => check.activeSlugs.includes(c.slug));
       openCourseLimitModal({
         courseToStart: course,
         activeCourses,
         onProceed: () => {
-          window.location.hash = `#/course/${courseSlug}/lesson/${lessonId}`;
+          window.location.hash = `/course/${courseSlug}/lesson/${lessonId}`;
         }
       });
       return;

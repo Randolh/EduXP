@@ -127,7 +127,7 @@ export function openCourseLimitModal({ courseToStart, activeCourses = [], onProc
             if (typeof onProceed === 'function') {
               onProceed();
             } else {
-              window.location.hash = `#/course/${courseToStart.slug}`;
+              window.location.hash = `/course/${courseToStart.slug}`;
             }
           }
         },
