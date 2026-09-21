@@ -19,6 +19,7 @@
 @import url('components/breadcrumbs.css');
 @import url('components/codeblocks.css');
 @import url('components/quiz.css');
+@import url('components/auth-modal.css');
 
 /* 3. Feature Views */
 @import url('views/hero.css');

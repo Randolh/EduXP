@@ -1,13 +1,24 @@
 /**
  * EduXP - Almacén de Estado y Progreso del Estudiante
- * Guarda lecciones completadas, última lección y notas en localStorage.
+ * Guarda lecciones completadas, última lección y notas en localStorage y en Supabase si hay sesión activa.
  */
+
+import {
+  supabase,
+  getActiveUser,
+  getCleanUsername,
+  fetchUserProgress,
+  saveLessonToCloud,
+  syncLocalProgressToCloud
+} from './services/supabase.js';
 
 const STORAGE_KEY_PROGRESS = 'eduxp_progress_v1';
 
 class Store {
   constructor() {
     this.data = this.load();
+    this.currentUser = null;
+    this.initSupabaseSync();
   }
 
   load() {
@@ -33,12 +44,86 @@ class Store {
     }
   }
 
+  /**
+   * Inicializa la escucha de sesión de Supabase y sincronización bidireccional
+   */
+  async initSupabaseSync() {
+    try {
+      this.currentUser = await getActiveUser();
+      if (this.currentUser) {
+        await this.syncWithCloud(this.currentUser);
+      }
+
+      // Escuchar cambios de sesión (login, logout, token refresh)
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        const previousUser = this.currentUser;
+        this.currentUser = session ? session.user : null;
+
+        window.dispatchEvent(new CustomEvent('eduxp:auth-changed', {
+          detail: { user: this.currentUser, event }
+        }));
+
+        if (this.currentUser && (!previousUser || previousUser.id !== this.currentUser.id)) {
+          await this.syncWithCloud(this.currentUser);
+        }
+      });
+    } catch (err) {
+      console.warn('No se pudo inicializar la sincronización con Supabase:', err);
+    }
+  }
+
+  /**
+   * Sincroniza y fusiona el progreso entre la nube y el almacenamiento local
+   */
+  async syncWithCloud(user) {
+    if (!user) return;
+    try {
+      const username = getCleanUsername(user);
+
+      // 1. Descargar progreso de la nube
+      const cloudRecords = await fetchUserProgress(user.id);
+
+      // 2. Fusionar lecciones completadas de la nube hacia local
+      let hasNewData = false;
+      cloudRecords.forEach(rec => {
+        if (!this.data.completedLessons[rec.course_slug]) {
+          this.data.completedLessons[rec.course_slug] = [];
+        }
+        const list = this.data.completedLessons[rec.course_slug];
+        if (rec.completed && !list.includes(rec.lesson_id)) {
+          list.push(rec.lesson_id);
+          hasNewData = true;
+        }
+      });
+
+      if (hasNewData) {
+        this.save();
+      }
+
+      // 3. Subir cualquier lección que el usuario completó en local mientras estaba offline/anónimo
+      const localCompletedObj = {};
+      for (const courseId in this.data.completedLessons) {
+        (this.data.completedLessons[courseId] || []).forEach(lId => {
+          localCompletedObj[`${courseId}/${lId}`] = true;
+        });
+      }
+
+      await syncLocalProgressToCloud(user.id, username, { completedLessons: localCompletedObj });
+
+      window.dispatchEvent(new CustomEvent('eduxp:cloud-synced', {
+        detail: { user, totalCount: this.getTotalCompletedCount() }
+      }));
+    } catch (err) {
+      console.warn('Error en syncWithCloud:', err);
+    }
+  }
+
   isLessonCompleted(courseId, lessonId) {
     const courseList = this.data.completedLessons[courseId];
     return Array.isArray(courseList) && courseList.includes(lessonId);
   }
 
-  setLessonCompleted(courseId, lessonId, isCompleted = true) {
+  setLessonCompleted(courseId, lessonId, isCompleted = true, xp = 50) {
     if (!this.data.completedLessons[courseId]) {
       this.data.completedLessons[courseId] = [];
     }
@@ -53,12 +138,25 @@ class Store {
     }
 
     this.save();
+
+    // Sincronizar en segundo plano con Supabase si hay usuario logueado
+    if (this.currentUser) {
+      saveLessonToCloud({
+        userId: this.currentUser.id,
+        username: getCleanUsername(this.currentUser),
+        courseSlug: courseId,
+        lessonId,
+        completed: isCompleted,
+        xp
+      }).catch(e => console.warn('Sync background error:', e));
+    }
+
     return isCompleted;
   }
 
-  toggleLessonCompleted(courseId, lessonId) {
+  toggleLessonCompleted(courseId, lessonId, xp = 50) {
     const currentState = this.isLessonCompleted(courseId, lessonId);
-    return this.setLessonCompleted(courseId, lessonId, !currentState);
+    return this.setLessonCompleted(courseId, lessonId, !currentState, xp);
   }
 
   setLastVisited(courseId, lessonId) {
@@ -88,6 +186,10 @@ class Store {
     return total;
   }
 
+  getCurrentUser() {
+    return this.currentUser;
+  }
+
   clearAllProgress() {
     this.data = {
       completedLessons: {},
@@ -99,3 +201,4 @@ class Store {
 }
 
 export const store = new Store();
+

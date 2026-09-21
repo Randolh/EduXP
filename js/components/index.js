@@ -13,3 +13,4 @@ export { createCallout, CalloutBoxElement } from './Callout.js';
 export { createBreadcrumbs } from './Breadcrumbs.js';
 export { createSearchFilterBar } from './SearchFilterBar.js';
 export { showToast } from './Toast.js';
+export { openAuthModal } from './AuthModal.js';
