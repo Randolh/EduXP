@@ -133,3 +133,31 @@
   border-color: var(--mint-primary);
   box-shadow: 0 0 12px rgba(0, 245, 160, 0.2);
 }
+
+/* Botón de Watchlist / Guardar para después */
+.watchlist-btn {
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  gap: 0.5rem;
+  transition: all var(--transition-base);
+}
+
+.watchlist-btn:hover {
+  border-color: var(--mint-primary);
+  color: var(--mint-primary);
+  background: var(--mint-dim);
+}
+
+.watchlist-btn.is-watchlisted {
+  background: var(--mint-dim);
+  color: var(--mint-primary);
+  border-color: var(--mint-primary);
+  box-shadow: 0 0 10px rgba(0, 245, 160, 0.15);
+}
+
+.watchlist-btn.is-watchlisted:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: none;
+}

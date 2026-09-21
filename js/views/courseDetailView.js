@@ -7,7 +7,7 @@
 import { api } from '../api.js';
 import { store } from '../store.js';
 import { el, clearElement, icon, createLoader } from '../utils/dom.js';
-import { createBadge, createProgressBar, createModuleCard, openAuthModal, openCourseLimitModal } from '../components/index.js';
+import { createBadge, createProgressBar, createModuleCard, openAuthModal, openCourseLimitModal, showToast } from '../components/index.js';
 
 export async function renderCourseDetail(container, courseSlug) {
   clearElement(container);
@@ -218,8 +218,59 @@ export async function renderCourseDetail(container, courseSlug) {
               });
             }
 
+            const courseStatus = store.getCourseStatus(courseSlug, totalLessonsCount);
+            const isOnWatchlist = courseStatus === 'on_hold';
+
+            const watchlistBtn = el('button', {
+              type: 'button',
+              id: `watchlist-btn-${courseSlug}`,
+              className: `btn btn-ghost btn-block btn-sm watchlist-btn ${isOnWatchlist ? 'is-watchlisted' : ''}`,
+              style: { marginTop: '0.6rem' },
+              title: isOnWatchlist ? 'Ya está en tu lista de En Espera' : 'Guardar en Mi Biblioteca para tomarlo después',
+              onClick: () => {
+                if (!isAuthenticated) {
+                  openAuthModal('login', 'Debes iniciar sesión para guardar cursos en tu biblioteca.');
+                  return;
+                }
+                const curStatus = store.getCourseStatus(courseSlug, totalLessonsCount);
+                if (curStatus === 'in_progress') {
+                  showToast('Este curso ya está en progreso.', 'info');
+                  return;
+                }
+                if (curStatus === 'completed') {
+                  showToast('Este curso ya está completado.', 'info');
+                  return;
+                }
+                if (curStatus === 'on_hold') {
+                  // Quitar de espera
+                  store.removeCourseFromLibrary(courseSlug);
+                  watchlistBtn.classList.remove('is-watchlisted');
+                  watchlistBtn.title = 'Guardar en Mi Biblioteca para tomarlo después';
+                  const wIcon = watchlistBtn.querySelector('i');
+                  const wText = watchlistBtn.querySelector('.watchlist-label');
+                  if (wIcon) wIcon.className = 'fa-regular fa-bookmark';
+                  if (wText) wText.textContent = ' Guardar para después';
+                  showToast(`"${course.title}" eliminado de En Espera.`, 'info');
+                } else {
+                  // Agregar a espera
+                  store.addCourseToWatchlist(courseSlug, totalLessonsCount);
+                  watchlistBtn.classList.add('is-watchlisted');
+                  watchlistBtn.title = 'Ya está en tu lista de En Espera';
+                  const wIcon = watchlistBtn.querySelector('i');
+                  const wText = watchlistBtn.querySelector('.watchlist-label');
+                  if (wIcon) wIcon.className = 'fa-solid fa-bookmark';
+                  if (wText) wText.textContent = ' Guardado en Espera';
+                  showToast(`"${course.title}" guardado en Mi Biblioteca → En Espera.`, 'success');
+                }
+              }
+            },
+              icon(isOnWatchlist ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'),
+              el('span', { className: 'watchlist-label' }, isOnWatchlist ? ' Guardado en Espera' : ' Guardar para después')
+            );
+
             return el('div', {},
               ctaBtn,
+              isAuthenticated ? watchlistBtn : null,
               el('p', {
                 style: {
                   fontSize: '0.775rem',

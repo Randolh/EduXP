@@ -586,6 +586,38 @@ class Store {
   }
 
   /**
+   * Agrega un curso a la lista "En Espera" (watchlist).
+   * Remueve el curso de cancelledCourses si estaba ahí para que sea visible.
+   * No afecta cursos que ya están en progreso o completados.
+   * @param {string} courseSlug
+   * @param {number} [totalLessons=0]
+   */
+  addCourseToWatchlist(courseSlug, totalLessons = 0) {
+    if (!this.currentUser) return false;
+
+    if (!this.data.courseStatus) this.data.courseStatus = {};
+
+    const currentStatus = this.getCourseStatus(courseSlug, totalLessons);
+
+    // Si ya está en progreso o completado, no hacer nada
+    if (currentStatus === 'in_progress' || currentStatus === 'completed') {
+      return false;
+    }
+
+    // Quitar de cancelledCourses para que sea visible en la biblioteca
+    if (Array.isArray(this.data.cancelledCourses)) {
+      this.data.cancelledCourses = this.data.cancelledCourses.filter(s => s !== courseSlug);
+    }
+
+    // Marcar como on_hold
+    this.data.courseStatus[courseSlug] = 'on_hold';
+
+    this.save();
+    window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
+    return true;
+  }
+
+  /**
    * Reanuda un curso a 'En Progreso', validando el cupo de 3
    * @param {string} courseSlug
    * @param {Array} allCourses
