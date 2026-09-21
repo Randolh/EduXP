@@ -12,22 +12,17 @@ import {
   syncLocalProgressToCloud
 } from './services/supabase.js';
 
-const STORAGE_KEY_PROGRESS = 'eduxp_progress_v1';
-
 class Store {
   constructor() {
-    this.data = this.load();
     this.currentUser = null;
+    this._authInitialized = false;
+    this._authReadyPromise = null;
+    this.data = this.getDefaultData();
+    this.cleanLegacyStorage();
     this.initSupabaseSync();
   }
 
-  load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_PROGRESS);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {
-      console.warn('Error leyendo progreso del usuario:', e);
-    }
+  getDefaultData() {
     return {
       completedLessons: {}, // { [courseId]: [lessonId1, lessonId2] }
       lastVisited: {},      // { [courseId]: lessonId }
@@ -35,9 +30,43 @@ class Store {
     };
   }
 
-  save() {
+  /**
+   * Elimina cualquier almacenamiento legado global para evitar mezclar datos
+   */
+  cleanLegacyStorage() {
     try {
-      localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(this.data));
+      localStorage.removeItem('eduxp_progress_v1');
+    } catch (e) {
+      // Ignorar errores de localStorage
+    }
+  }
+
+  getStorageKey(userId) {
+    return userId ? `eduxp_progress_${userId}` : null;
+  }
+
+  load(userId) {
+    if (!userId) {
+      return this.getDefaultData();
+    }
+    try {
+      const key = this.getStorageKey(userId);
+      const raw = localStorage.getItem(key);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.warn('Error leyendo progreso del usuario:', e);
+    }
+    return this.getDefaultData();
+  }
+
+  save() {
+    // Si no hay usuario autenticado, no se persiste nada en localStorage
+    if (!this.currentUser) return;
+    try {
+      const key = this.getStorageKey(this.currentUser.id);
+      if (key) {
+        localStorage.setItem(key, JSON.stringify(this.data));
+      }
       window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
     } catch (e) {
       console.warn('Error guardando progreso:', e);
@@ -45,13 +74,35 @@ class Store {
   }
 
   /**
+   * Promesa que resuelve cuando se ha determinado el estado inicial de autenticación
+   */
+  async waitForAuth() {
+    if (this._authInitialized) return this.currentUser;
+    return this._authReadyPromise;
+  }
+
+  isAuthenticated() {
+    return !!this.currentUser;
+  }
+
+  /**
    * Inicializa la escucha de sesión de Supabase y sincronización bidireccional
    */
-  async initSupabaseSync() {
-    try {
-      this.currentUser = await getActiveUser();
-      if (this.currentUser) {
-        await this.syncWithCloud(this.currentUser);
+  initSupabaseSync() {
+    this._authReadyPromise = new Promise(async (resolve) => {
+      try {
+        this.currentUser = await getActiveUser();
+        if (this.currentUser) {
+          this.data = this.load(this.currentUser.id);
+          await this.syncWithCloud(this.currentUser);
+        } else {
+          this.data = this.getDefaultData();
+        }
+      } catch (err) {
+        console.warn('No se pudo inicializar la sesión con Supabase:', err);
+      } finally {
+        this._authInitialized = true;
+        resolve(this.currentUser);
       }
 
       // Escuchar cambios de sesión (login, logout, token refresh)
@@ -59,31 +110,43 @@ class Store {
         const previousUser = this.currentUser;
         this.currentUser = session ? session.user : null;
 
+        if (this.currentUser) {
+          // El usuario inició sesión o cambió de cuenta
+          if (!previousUser || previousUser.id !== this.currentUser.id) {
+            this.data = this.load(this.currentUser.id);
+            await this.syncWithCloud(this.currentUser);
+          }
+        } else {
+          // El usuario CERRÓ SESIÓN:
+          // 1. Despejar completamente los datos en memoria para que no contaminen al siguiente usuario
+          this.data = this.getDefaultData();
+          window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
+
+          // 2. Si el usuario estaba dentro de una lección protegida, expulsar al catálogo
+          if (window.location.hash.includes('/lesson/')) {
+            window.location.hash = '#/courses';
+          }
+        }
+
         window.dispatchEvent(new CustomEvent('eduxp:auth-changed', {
           detail: { user: this.currentUser, event }
         }));
-
-        if (this.currentUser && (!previousUser || previousUser.id !== this.currentUser.id)) {
-          await this.syncWithCloud(this.currentUser);
-        }
       });
-    } catch (err) {
-      console.warn('No se pudo inicializar la sincronización con Supabase:', err);
-    }
+    });
   }
 
   /**
-   * Sincroniza y fusiona el progreso entre la nube y el almacenamiento local
+   * Sincroniza y fusiona el progreso entre la nube y el almacenamiento local aislado del usuario
    */
   async syncWithCloud(user) {
     if (!user) return;
     try {
       const username = getCleanUsername(user);
 
-      // 1. Descargar progreso de la nube
+      // 1. Descargar progreso de la nube para este usuario
       const cloudRecords = await fetchUserProgress(user.id);
 
-      // 2. Fusionar lecciones completadas de la nube hacia local
+      // 2. Fusionar lecciones completadas de la nube hacia el almacenamiento local del usuario
       let hasNewData = false;
       cloudRecords.forEach(rec => {
         if (!this.data.completedLessons[rec.course_slug]) {
@@ -100,7 +163,7 @@ class Store {
         this.save();
       }
 
-      // 3. Subir cualquier lección que el usuario completó en local mientras estaba offline/anónimo
+      // 3. Subir cualquier lección completada localmente bajo este usuario
       const localCompletedObj = {};
       for (const courseId in this.data.completedLessons) {
         (this.data.completedLessons[courseId] || []).forEach(lId => {
@@ -124,6 +187,12 @@ class Store {
   }
 
   setLessonCompleted(courseId, lessonId, isCompleted = true, xp = 50) {
+    // Si no está autenticado, no permitir guardar avance
+    if (!this.currentUser) {
+      console.warn('Acción bloqueada: Se requiere iniciar sesión para guardar progreso.');
+      return false;
+    }
+
     if (!this.data.completedLessons[courseId]) {
       this.data.completedLessons[courseId] = [];
     }
@@ -139,17 +208,15 @@ class Store {
 
     this.save();
 
-    // Sincronizar en segundo plano con Supabase si hay usuario logueado
-    if (this.currentUser) {
-      saveLessonToCloud({
-        userId: this.currentUser.id,
-        username: getCleanUsername(this.currentUser),
-        courseSlug: courseId,
-        lessonId,
-        completed: isCompleted,
-        xp
-      }).catch(e => console.warn('Sync background error:', e));
-    }
+    // Sincronizar en segundo plano con Supabase para este usuario
+    saveLessonToCloud({
+      userId: this.currentUser.id,
+      username: getCleanUsername(this.currentUser),
+      courseSlug: courseId,
+      lessonId,
+      completed: isCompleted,
+      xp
+    }).catch(e => console.warn('Sync background error:', e));
 
     return isCompleted;
   }
@@ -160,6 +227,7 @@ class Store {
   }
 
   setLastVisited(courseId, lessonId) {
+    if (!this.currentUser) return;
     this.data.lastVisited[courseId] = lessonId;
     this.save();
   }
@@ -191,11 +259,13 @@ class Store {
   }
 
   clearAllProgress() {
-    this.data = {
-      completedLessons: {},
-      lastVisited: {},
-      favorites: []
-    };
+    if (this.currentUser) {
+      const key = this.getStorageKey(this.currentUser.id);
+      if (key) {
+        localStorage.removeItem(key);
+      }
+    }
+    this.data = this.getDefaultData();
     this.save();
   }
 }

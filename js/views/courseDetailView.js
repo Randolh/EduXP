@@ -8,12 +8,14 @@ import { api } from '../api.js';
 import { store } from '../store.js';
 import { el, clearElement, icon, createLoader } from '../utils/dom.js';
 import { createBadge, createProgressBar, createModuleCard } from '../components/index.js';
+import { openAuthModal } from '../components/AuthModal.js';
 
 export async function renderCourseDetail(container, courseSlug) {
   clearElement(container);
   container.appendChild(createLoader('Cargando temario del curso...'));
 
   try {
+    await store.waitForAuth();
     const course = await api.getCourse(courseSlug);
 
     // Contar total de lecciones y encontrar lección objetivo
@@ -33,6 +35,7 @@ export async function renderCourseDetail(container, courseSlug) {
 
     const stats = store.getCourseStats(courseSlug, totalLessonsCount);
     const lastVisited = store.getLastVisited(courseSlug);
+    const isAuthenticated = store.isAuthenticated();
 
     const targetLesson = lastVisited
       ? findLessonById(course.modules, lastVisited) || nextUncompletedLesson || firstLesson
@@ -160,47 +163,75 @@ export async function renderCourseDetail(container, courseSlug) {
           el('div', { className: 'cta-progress-box' },
             el('div', { className: 'progress-text-row', style: { marginTop: '0', marginBottom: '0.5rem' } },
               el('span', { style: { color: 'var(--text-main)', fontWeight: '700' }, textContent: 'Tu Avance' }),
-              el('span', { className: 'text-mint', textContent: `${stats.percentage}%` })
+              el('span', { className: 'text-mint', textContent: isAuthenticated ? `${stats.percentage}%` : '0%' })
             ),
             createProgressBar({
-              percentage: stats.percentage,
+              percentage: isAuthenticated ? stats.percentage : 0,
               showLabels: false
             }),
             el('p', {
               style: { fontSize: '0.775rem', color: 'var(--text-dim)', marginTop: '0.5rem' },
-              textContent: `${stats.completed} de ${totalLessonsCount} lecciones completadas`
+              textContent: isAuthenticated
+                ? `${stats.completed} de ${totalLessonsCount} lecciones completadas`
+                : 'Inicia sesión para registrar tu progreso'
             })
           ),
 
-          targetLesson
-            ? el('div', {},
-                el('a', {
-                  href: `#/course/${courseSlug}/lesson/${targetLesson.id}`,
-                  className: 'btn btn-primary btn-block btn-lg'
-                },
-                  icon('fa-solid fa-play'),
-                  ` ${stats.completed > 0 ? 'Continuar Lección' : 'Comenzar Ahora'}`
-                ),
-                el('p', {
-                  style: {
-                    fontSize: '0.775rem',
-                    color: 'var(--text-dim)',
-                    textAlign: 'center',
-                    marginTop: '0.65rem'
-                  },
-                  textContent: `Siguiente: ${targetLesson.title}`
-                })
-              )
-            : el('div', {
+          (() => {
+            if (!targetLesson) {
+              return el('div', {
                 className: 'badge badge-mint',
                 style: { textAlign: 'center', fontWeight: '600' }
               },
                 icon('fa-solid fa-circle-check'),
                 ' ¡Has completado este curso!'
+              );
+            }
+
+            const ctaBtn = el('a', {
+              href: isAuthenticated ? `#/course/${courseSlug}/lesson/${targetLesson.id}` : 'javascript:void(0)',
+              className: 'btn btn-primary btn-block btn-lg'
+            },
+              icon(isAuthenticated ? 'fa-solid fa-play' : 'fa-solid fa-lock'),
+              ` ${isAuthenticated ? (stats.completed > 0 ? 'Continuar Lección' : 'Comenzar Ahora') : 'Iniciar Sesión para Comenzar'}`
+            );
+
+            if (!isAuthenticated) {
+              ctaBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
+              });
+            }
+
+            return el('div', {},
+              ctaBtn,
+              el('p', {
+                style: {
+                  fontSize: '0.775rem',
+                  color: 'var(--text-dim)',
+                  textAlign: 'center',
+                  marginTop: '0.65rem'
+                }
+              },
+                icon(isAuthenticated ? 'fa-regular fa-compass' : 'fa-solid fa-shield-halved', 'text-mint'),
+                ` ${isAuthenticated ? `Siguiente: ${targetLesson.title}` : ' Progreso aislado y seguro en la nube'}`
               )
+            );
+          })()
         )
       )
     );
+
+    // Re-renderizar si cambia el estado de autenticación mientras está en esta vista
+    const onAuthUpdate = () => {
+      if (window.location.hash.startsWith(`#/course/${courseSlug}`)) {
+        window.removeEventListener('eduxp:auth-changed', onAuthUpdate);
+        window.removeEventListener('eduxp:cloud-synced', onAuthUpdate);
+        renderCourseDetail(container, courseSlug);
+      }
+    };
+    window.addEventListener('eduxp:auth-changed', onAuthUpdate, { once: true });
+    window.addEventListener('eduxp:cloud-synced', onAuthUpdate, { once: true });
 
     // 2. Sección del Temario (Syllabus)
     const syllabusSection = el('section', { className: 'syllabus-container' },

@@ -13,7 +13,8 @@ import {
   createProgressBar,
   updateProgressBar,
   createBreadcrumbs,
-  showToast
+  showToast,
+  openAuthModal
 } from '../components/index.js';
 
 export async function renderLesson(container, courseSlug, lessonId) {
@@ -21,6 +22,13 @@ export async function renderLesson(container, courseSlug, lessonId) {
   container.appendChild(createLoader('Cargando lección...'));
 
   try {
+    await store.waitForAuth();
+    if (!store.isAuthenticated()) {
+      window.location.hash = `#/course/${courseSlug}`;
+      openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
+      return;
+    }
+
     const course = await api.getCourse(courseSlug);
 
     // Aplanar todas las lecciones en orden para facilitar navegación

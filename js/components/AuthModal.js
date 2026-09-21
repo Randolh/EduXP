@@ -12,8 +12,9 @@ let currentModal = null;
 /**
  * Abre el modal de autenticación
  * @param {'login' | 'register'} initialTab
+ * @param {string} [customMessage]
  */
-export function openAuthModal(initialTab = 'login') {
+export function openAuthModal(initialTab = 'login', customMessage = null) {
   if (currentModal) {
     currentModal.remove();
     currentModal = null;
@@ -67,14 +68,14 @@ export function openAuthModal(initialTab = 'login') {
       tabLoginBtn.className = 'auth-tab-btn is-active';
       tabRegisterBtn.className = 'auth-tab-btn';
       modalTitle.textContent = 'Bienvenido de nuevo';
-      modalSubtitle.textContent = 'Inicia sesión para sincronizar tu progreso y continuar donde lo dejaste.';
+      modalSubtitle.textContent = customMessage || 'Inicia sesión para sincronizar tu progreso y continuar donde lo dejaste.';
       submitBtn.textContent = 'Entrar a mi Cuenta';
       passwordInput.autocomplete = 'current-password';
     } else {
       tabLoginBtn.className = 'auth-tab-btn';
       tabRegisterBtn.className = 'auth-tab-btn is-active';
       modalTitle.textContent = 'Crea tu Cuenta';
-      modalSubtitle.textContent = 'Solo necesitas un nombre de usuario y contraseña para guardar tu avance en la nube.';
+      modalSubtitle.textContent = customMessage || 'Solo necesitas un nombre de usuario y contraseña para guardar tu avance en la nube.';
       submitBtn.textContent = 'Crear Cuenta Gratis';
       passwordInput.autocomplete = 'new-password';
     }

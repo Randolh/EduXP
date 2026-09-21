@@ -10,6 +10,8 @@ import { renderCourseDetail } from './views/courseDetailView.js';
 import { renderLesson } from './views/lessonView.js';
 import { renderSettings } from './views/settingsView.js';
 import { el, clearElement, icon } from './utils/dom.js';
+import { store } from './store.js';
+import { openAuthModal } from './components/AuthModal.js';
 
 class Router {
   constructor(routes = []) {
@@ -73,6 +75,18 @@ class Router {
 
     if (matched) {
       try {
+        // Verificar si la ruta requiere autenticación obligatoria
+        if (matched.route.requiresAuth) {
+          await store.waitForAuth();
+          if (!store.isAuthenticated()) {
+            console.warn(`Ruta protegida (${path}): Inicio de sesión obligatorio.`);
+            const fallbackPath = matched.params?.slug ? `#/course/${matched.params.slug}` : '#/courses';
+            window.location.hash = fallbackPath;
+            openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
+            return;
+          }
+        }
+
         await matched.route.handler(this.appContainer, matched.params, queryParams);
       } catch (error) {
         console.error('Error renderizando vista:', error);
@@ -162,6 +176,7 @@ export function initRouter() {
     },
     {
       path: '/course/:slug/lesson/:lessonId',
+      requiresAuth: true,
       handler: (container, params) => renderLesson(container, params.slug, params.lessonId)
     },
     {
