@@ -225,3 +225,32 @@ export async function syncLocalProgressToCloud(userId, username, localStoreProgr
     console.warn('Error sincronizando local a nube:', err);
   }
 }
+
+/**
+ * Elimina todo el progreso de un curso en la nube para un usuario específico
+ * @param {string} userId
+ * @param {string} courseSlug
+ */
+export async function resetCourseProgressInCloud(userId, courseSlug) {
+  if (!userId || !courseSlug) return;
+  try {
+    const { error } = await supabase
+      .from('user_progress')
+      .delete()
+      .eq('user_id', userId)
+      .eq('course_slug', courseSlug);
+
+    if (error) {
+      console.warn('Aviso al eliminar registros en Supabase:', error.message);
+      // Fallback: marcar como no completado si delete estuviera bloqueado por RLS
+      await supabase
+        .from('user_progress')
+        .update({ completed: false, xp_earned: 0 })
+        .eq('user_id', userId)
+        .eq('course_slug', courseSlug);
+    }
+  } catch (err) {
+    console.warn('Error en resetCourseProgressInCloud:', err);
+  }
+}
+

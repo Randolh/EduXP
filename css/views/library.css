@@ -291,7 +291,39 @@
 
 /* Course Limit Modal Styles */
 .course-limit-modal-window {
-  max-width: 460px;
+  max-width: 490px;
+}
+
+.limit-warning-box {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.text-warning-icon {
+  color: #ef4444;
+  font-size: 1.15rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.limit-warning-content strong {
+  display: block;
+  font-size: 0.825rem;
+  color: #f87171;
+  margin-bottom: 0.25rem;
+}
+
+.limit-warning-content p {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
 }
 
 .limit-section-label {
@@ -341,14 +373,29 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 190px;
 }
 
-.limit-pause-btn {
+.limit-cancel-btn {
   white-space: nowrap;
   font-size: 0.75rem;
   padding: 0.35rem 0.65rem;
 }
+
+.limit-confirm-text {
+  font-size: 0.8rem;
+  color: #fca5a5;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.limit-confirm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {

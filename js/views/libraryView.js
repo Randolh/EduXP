@@ -27,6 +27,9 @@ export async function renderLibrary(container) {
     const grid = el('div', { className: 'library-grid', id: 'library-grid' });
 
     function computeCategorizedCourses() {
+      // 1. Aplicar límite estricto de máximo 3 cursos en progreso
+      store.enforceMaxActiveLimit(allCourses);
+
       const inProgress = [];
       const completed = [];
       const onHold = [];
@@ -43,7 +46,12 @@ export async function renderLibrary(container) {
         } else if (status === 'on_hold') {
           onHold.push(enriched);
         } else if (status === 'in_progress') {
-          inProgress.push(enriched);
+          if (inProgress.length < 3) {
+            inProgress.push(enriched);
+          } else {
+            // Salvaguarda: cualquier excedente se muestra en on_hold
+            onHold.push({ ...enriched, status: 'on_hold' });
+          }
         } else {
           notStarted.push(enriched);
         }
@@ -59,7 +67,7 @@ export async function renderLibrary(container) {
       clearElement(libraryContainer);
 
       const { inProgress, completed, onHold } = computeCategorizedCourses();
-      const activeCount = inProgress.length;
+      const activeCount = Math.min(inProgress.length, 3);
       const isFull = activeCount >= 3;
 
       // 1. Hero Header con Widget de Cupos Activos (3/3 Limit)
@@ -72,7 +80,7 @@ export async function renderLibrary(container) {
       });
 
       const slotHintText = isFull
-        ? '⚠️ Límite alcanzado: Pausa o concluye un curso para liberar un cupo.'
+        ? '⚠️ Límite alcanzado: Cancela un curso (reiniciando su progreso) o complétalo al 100% para liberar cupo.'
         : `Tienes ${3 - activeCount} cupo(s) disponible(s) para nuevos cursos activos.`;
 
       const heroHeader = el('section', { className: 'library-header' },
@@ -83,7 +91,7 @@ export async function renderLibrary(container) {
               ' Mi Biblioteca de Cursos'
             ),
             el('p', { className: 'library-desc' },
-              'Gestiona tu aprendizaje con enfoque. La plataforma limita a un máximo de 3 cursos simultáneos en progreso para garantizar tu retención y constancia.'
+              'Gestiona tu aprendizaje con enfoque. Máximo 3 cursos simultáneos en progreso. Si tienes los 3 cupos llenos y deseas iniciar otro, deberás cancelar uno perdiendo su avance para liberar el espacio. Los cursos terminados no ocupan cupo ni se afectan.'
             )
           ),
           el('div', { className: 'library-slot-card' },
@@ -268,16 +276,21 @@ function createLibraryCard(course, allCourses, onRefresh) {
 
     secondaryActionBtn = el('button', {
       type: 'button',
-      className: 'btn btn-ghost btn-sm library-secondary-btn text-muted',
-      title: 'Poner en espera para liberar un cupo',
-      onClick: () => {
-        store.pauseCourseToHold(course.slug);
-        showToast(`"${course.title}" puesto en espera. Has liberado un cupo.`, 'info');
-        onRefresh();
+      className: 'btn btn-ghost btn-sm library-secondary-btn text-danger',
+      title: 'Cancelar curso y perder progreso para liberar cupo',
+      onClick: async () => {
+        const confirmed = window.confirm(
+          `¿Estás seguro de cancelar "${course.title}"?\n\n⚠️ Atención: Perderás todo el progreso acumulado (${stats.percentage}%) para liberar el cupo. (Los cursos terminados no se afectan).`
+        );
+        if (confirmed) {
+          await store.cancelCourseAndResetProgress(course.slug, course.totalLessons || 0);
+          showToast(`"${course.title}" cancelado. Cupo liberado y progreso reiniciado a 0%.`, 'warning');
+          onRefresh();
+        }
       }
     },
-      icon('fa-solid fa-pause text-yellow'),
-      ' Pausar'
+      icon('fa-solid fa-trash-can text-danger'),
+      ' Cancelar'
     );
   } else if (isOnHold) {
     primaryActionBtn = el('button', {
@@ -286,7 +299,7 @@ function createLibraryCard(course, allCourses, onRefresh) {
       onClick: () => {
         const check = store.canStartOrResumeCourse(course.slug, allCourses);
         if (!check.allowed) {
-          // Límite alcanzado: mostrar modal para elegir cuál pausar
+          // Límite alcanzado: mostrar modal para elegir cuál cancelar perdiendo su avance
           const activeCourses = allCourses.filter(c => check.activeSlugs.includes(c.slug));
           openCourseLimitModal({
             courseToStart: course,
@@ -294,14 +307,14 @@ function createLibraryCard(course, allCourses, onRefresh) {
             onProceed: () => onRefresh()
           });
         } else {
-          store.resumeCourse(course.slug, allCourses);
-          showToast(`"${course.title}" reanudado a En Progreso.`, 'success');
+          store.setCourseStatus(course.slug, 'in_progress');
+          showToast(`"${course.title}" activado a En Progreso.`, 'success');
           onRefresh();
         }
       }
     },
       icon('fa-solid fa-play text-mint'),
-      ' Reanudar'
+      ' Activar'
     );
 
     secondaryActionBtn = el('a', {

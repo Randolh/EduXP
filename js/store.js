@@ -10,7 +10,8 @@ import {
   fetchUserProgress,
   saveLessonToCloud,
   syncLocalProgressToCloud,
-  signOutUser
+  signOutUser,
+  resetCourseProgressInCloud
 } from './services/supabase.js';
 
 class Store {
@@ -341,13 +342,86 @@ class Store {
   }
 
   /**
+   * Garantiza estrictamente que JAMÁS existan más de 3 cursos con estado 'in_progress'.
+   * Si por datos residuales o simultáneos hay más de 3, conserva los 3 con mayor avance
+   * o actividad reciente, y pasa los excedentes a 'on_hold'.
+   * Los cursos terminados (100%) no cuentan contra este límite.
+   * @param {Array} allCourses
+   */
+  enforceMaxActiveLimit(allCourses = []) {
+    if (!this.currentUser || !Array.isArray(allCourses) || allCourses.length === 0) return;
+
+    if (!this.data.courseStatus) this.data.courseStatus = {};
+
+    const activeCandidates = [];
+
+    allCourses.forEach(c => {
+      const total = c.totalLessons || 0;
+      const stats = this.getCourseStats(c.slug, total);
+
+      // Si está completado al 100%, es 'completed' y no compite por cupos
+      if (total > 0 && stats.completed >= total) {
+        return;
+      }
+
+      const explicit = this.data.courseStatus[c.slug];
+      if (explicit === 'on_hold') {
+        return;
+      }
+
+      if (explicit === 'in_progress' || stats.completed > 0 || this.getLastVisited(c.slug)) {
+        activeCandidates.push({
+          slug: c.slug,
+          completed: stats.completed,
+          hasLastVisited: !!this.getLastVisited(c.slug),
+          explicit: explicit === 'in_progress'
+        });
+      }
+    });
+
+    if (activeCandidates.length > 3) {
+      // Ordenar: primero los que tienen lecciones completadas (> 0),
+      // luego por última visita y estado explícito
+      activeCandidates.sort((a, b) => {
+        if (b.completed !== a.completed) return b.completed - a.completed;
+        if (b.hasLastVisited !== a.hasLastVisited) return (b.hasLastVisited ? 1 : 0) - (a.hasLastVisited ? 1 : 0);
+        return (b.explicit ? 1 : 0) - (a.explicit ? 1 : 0);
+      });
+
+      const keptSlugs = activeCandidates.slice(0, 3).map(x => x.slug);
+      const excessSlugs = activeCandidates.slice(3).map(x => x.slug);
+
+      keptSlugs.forEach(slug => {
+        this.data.courseStatus[slug] = 'in_progress';
+      });
+
+      excessSlugs.forEach(slug => {
+        // Los cursos excedentes pasan a 'on_hold' para liberar el cupo y evitar 4/3
+        this.data.courseStatus[slug] = 'on_hold';
+      });
+
+      this.save();
+    }
+  }
+
+  /**
    * Establece manualmente el estado de un curso (ej. 'in_progress' o 'on_hold')
    * @param {string} courseSlug
    * @param {'in_progress' | 'on_hold' | 'completed'} status
+   * @param {Array} [allCourses=[]]
    */
-  setCourseStatus(courseSlug, status) {
+  setCourseStatus(courseSlug, status, allCourses = []) {
     if (!this.currentUser) return false;
     if (!this.data.courseStatus) this.data.courseStatus = {};
+
+    if (status === 'in_progress' && Array.isArray(allCourses) && allCourses.length > 0) {
+      const activeSlugs = this.getActiveCoursesInProgress(allCourses).filter(s => s !== courseSlug);
+      if (activeSlugs.length >= 3) {
+        console.warn(`Bloqueado: Ya existen 3 cursos activos. Cancela uno para activar "${courseSlug}".`);
+        return false;
+      }
+    }
+
     this.data.courseStatus[courseSlug] = status;
     this.save();
     window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
@@ -355,12 +429,14 @@ class Store {
   }
 
   /**
-   * Retorna los slugs de cursos actualmente activos en progreso
+   * Retorna los slugs de cursos actualmente activos en progreso (estrictamente máximo 3)
    * @param {Array} allCourses
    * @returns {Array<string>}
    */
   getActiveCoursesInProgress(allCourses = []) {
     if (!this.currentUser || !Array.isArray(allCourses)) return [];
+    this.enforceMaxActiveLimit(allCourses);
+
     const active = [];
     allCourses.forEach(c => {
       const status = this.getCourseStatus(c.slug, c.totalLessons || 0);
@@ -368,7 +444,8 @@ class Store {
         active.push(c.slug);
       }
     });
-    return active;
+    // Garantizar que la lista devuelta NUNCA supere 3
+    return active.slice(0, 3);
   }
 
   /**
@@ -389,7 +466,7 @@ class Store {
       return { allowed: true, count: activeSlugs.length, max: 3, activeSlugs };
     }
 
-    // Si ya hay 3 cursos en progreso y este es un 4to curso, bloquear
+    // Si ya hay 3 cursos en progreso y este es un curso nuevo o pausado, bloquear
     if (activeSlugs.length >= 3) {
       return { allowed: false, count: activeSlugs.length, max: 3, activeSlugs };
     }
@@ -403,6 +480,54 @@ class Store {
    */
   pauseCourseToHold(courseSlug) {
     return this.setCourseStatus(courseSlug, 'on_hold');
+  }
+
+  /**
+   * Cancela un curso activo en progreso y reinicia TODO su progreso (0%)
+   * para liberar permanentemente el cupo.
+   * Los cursos terminados están protegidos y no son afectados.
+   * @param {string} courseSlug
+   * @param {number} [totalLessons=0]
+   */
+  async cancelCourseAndResetProgress(courseSlug, totalLessons = 0) {
+    if (!this.currentUser) return false;
+
+    // Proteger cursos completados: si está terminado, no se reinicia
+    const status = this.getCourseStatus(courseSlug, totalLessons);
+    if (status === 'completed') {
+      console.warn(`El curso "${courseSlug}" ya está terminado y su progreso está protegido.`);
+      return false;
+    }
+
+    // 1. Eliminar lecciones completadas para este curso
+    if (this.data.completedLessons && this.data.completedLessons[courseSlug]) {
+      delete this.data.completedLessons[courseSlug];
+    }
+
+    // 2. Eliminar última lección visitada
+    if (this.data.lastVisited && this.data.lastVisited[courseSlug]) {
+      delete this.data.lastVisited[courseSlug];
+    }
+
+    // 3. Eliminar estado explícito en courseStatus
+    if (this.data.courseStatus && this.data.courseStatus[courseSlug]) {
+      delete this.data.courseStatus[courseSlug];
+    }
+
+    // 4. Guardar localmente
+    this.save();
+
+    // 5. Emitir evento para actualizar toda la interfaz
+    window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
+
+    // 6. Sincronizar borrado con Supabase
+    try {
+      await resetCourseProgressInCloud(this.currentUser.id, courseSlug);
+    } catch (e) {
+      console.warn('Error borrando progreso del curso en Supabase:', e);
+    }
+
+    return true;
   }
 
   /**
