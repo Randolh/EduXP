@@ -143,6 +143,57 @@
   gap: 0.6rem;
 }
 
+/* ============================================================
+   Estados visuales de tarjeta (curso en progreso, espera, etc.)
+   ============================================================ */
+
+/* Borde superior de color según estado */
+.course-card--in_progress {
+  border-top: 3px solid var(--mint-primary);
+  box-shadow: 0 0 0 1px rgba(0, 245, 160, 0.08);
+}
+
+.course-card--on_hold {
+  border-top: 3px solid #f59e0b;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.08);
+}
+
+.course-card--completed {
+  border-top: 3px solid #22d3ee;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08);
+}
+
+/* Ribbon de estado — tira horizontal en la parte superior de la tarjeta */
+.card-status-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.28rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ribbon--progress {
+  background: rgba(0, 245, 160, 0.1);
+  color: var(--mint-primary);
+  border-bottom: 1px solid rgba(0, 245, 160, 0.2);
+}
+
+.ribbon--hold {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.ribbon--done {
+  background: rgba(34, 211, 238, 0.08);
+  color: #22d3ee;
+  border-bottom: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+/* Footer badges por estado */
 .card-status-badge {
   display: inline-flex;
   align-items: center;
@@ -154,10 +205,38 @@
   flex: 1;
 }
 
+.badge-done {
+  background: rgba(34, 211, 238, 0.1);
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.25);
+}
+
+.badge-hold {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
 .on-hold-badge {
-  background: rgba(var(--text-muted-rgb, 150, 150, 170), 0.12);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* Hover suave por estado */
+.course-card--in_progress:hover {
+  border-color: var(--mint-primary);
+  box-shadow: 0 0 0 1px rgba(0, 245, 160, 0.2), 0 8px 24px rgba(0, 245, 160, 0.12);
+}
+
+.course-card--on_hold:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 8px 24px rgba(245, 158, 11, 0.1);
+}
+
+.course-card--completed:hover {
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25), 0 8px 24px rgba(34, 211, 238, 0.1);
 }
 
 @media (max-width: 600px) {
