@@ -109,7 +109,7 @@ export async function renderCatalog(container, queryParams = {}) {
           icon('fa-solid fa-triangle-exclamation'),
           ` ${err.message}`
         ),
-        el('a', { href: '#/settings', className: 'btn btn-secondary btn-sm' }, 'Revisar configuración de repositorios')
+        el('button', { className: 'btn btn-secondary btn-sm', onClick: () => window.location.reload() }, 'Reintentar Carga')
       )
     );
   }

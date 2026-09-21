@@ -189,7 +189,9 @@ export function initRouter() {
     },
     {
       path: '/settings',
-      handler: (container) => renderSettings(container)
+      handler: () => {
+        window.location.hash = '#/';
+      }
     }
   ];
 

@@ -1,54 +1,36 @@
 /**
- * EduXP - Configuración de fuentes de contenido
- * Permite cambiar entre repositorio local de ejemplo y repositorios remotos en GitHub.
+ * EduXP - Configuración fija de fuentes de contenido desde config.json
  */
 
-const STORAGE_KEY_CONFIG = 'eduxp_config';
-
 const DEFAULT_CONFIG = {
-  // 'local' o 'github'
-  sourceType: 'local',
-  
-  // Parámetros si sourceType === 'github'
+  appName: 'EduXP',
+  sourceType: 'github',
   github: {
-    owner: 'randolh',
-    repo: 'eduxp-courses',
+    owner: 'Randolh',
+    repo: 'Content_EduXP',
     branch: 'main',
-    // jsdelivr evita problemas de CORS y limites de peticiones directas a GitHub Raw
     useCdn: true
   },
-
-  // Ruta base cuando es local (dentro de la misma app)
   localBasePath: './content'
 };
 
 class ConfigManager {
   constructor() {
-    this.config = this.loadConfig();
+    this.config = { ...DEFAULT_CONFIG };
+    this.loadExternalConfig();
   }
 
-  loadConfig() {
+  async loadExternalConfig() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_CONFIG);
-      if (saved) {
-        return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+      const res = await fetch('./config.json');
+      if (res.ok) {
+        const jsonConfig = await res.json();
+        this.config = { ...DEFAULT_CONFIG, ...jsonConfig };
+        window.dispatchEvent(new CustomEvent('eduxp:config-changed', { detail: this.config }));
       }
     } catch (e) {
-      console.warn('No se pudo leer la configuración local:', e);
+      console.warn('Usando configuración predeterminada en memoria:', e);
     }
-    return { ...DEFAULT_CONFIG };
-  }
-
-  saveConfig(newConfig) {
-    this.config = { ...this.config, ...newConfig };
-    localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(this.config));
-    window.dispatchEvent(new CustomEvent('eduxp:config-changed', { detail: this.config }));
-  }
-
-  resetConfig() {
-    this.config = { ...DEFAULT_CONFIG };
-    localStorage.removeItem(STORAGE_KEY_CONFIG);
-    window.dispatchEvent(new CustomEvent('eduxp:config-changed', { detail: this.config }));
   }
 
   getBaseUrl() {
@@ -77,3 +59,5 @@ class ConfigManager {
 }
 
 export const configManager = new ConfigManager();
+
+

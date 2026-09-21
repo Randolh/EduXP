@@ -91,25 +91,24 @@ Tienes dos formas de conectar la aplicación con tu repositorio de cursos:
 5. Haz clic en **"Probar Conexión"** para verificar que `courses.json` se lea correctamente.
 6. Haz clic en **"Guardar Configuración"**. ¡Listo! A partir de ese momento, la web cargará en vivo todo lo que subas a ese repositorio.
 
-### Opción B: Dejar tu repositorio fijado por defecto en el código
-Si quieres que tu versión en GitHub Pages cargue siempre tu repositorio automáticamente sin que los visitantes tengan que configurarlo:
+### Opción B: Dejar tu repositorio fijado por defecto en config.json
+Si quieres cambiar el repositorio o la configuración global de la aplicación, edita el archivo [`config.json`](file:///home/randolh/Documents/EduXP/config.json) en la raíz del proyecto:
 
-Abre el archivo [js/config.js](file:///home/randolh/Documents/EduXP/js/config.js) y edita las primeras líneas:
-
-```javascript
-const DEFAULT_CONFIG = {
-  sourceType: 'github', // Cambiar de 'local' a 'github'
-  
-  github: {
-    owner: 'TU-USUARIO',        // Tu usuario de GitHub
-    repo: 'eduxp-courses',      // Nombre del repo de contenido
-    branch: 'main',
-    useCdn: true                // Muy recomendado
+```json
+{
+  "appName": "EduXP",
+  "sourceType": "github",
+  "github": {
+    "owner": "Randolh",
+    "repo": "Content_EduXP",
+    "branch": "main",
+    "useCdn": true
   },
-
-  localBasePath: './content'
-};
+  "localBasePath": "./content"
+}
 ```
+
+También puedes editar las propiedades predeterminadas directamente en [`js/config.js`](file:///home/randolh/Documents/EduXP/js/config.js).
 
 ---
 

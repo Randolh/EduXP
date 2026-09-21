@@ -39,9 +39,9 @@ export async function renderHome(container) {
           icon('fa-solid fa-compass'),
           ' Explorar Catálogo'
         ),
-        el('a', { href: '#/settings', className: 'btn btn-secondary btn-lg' },
+        el('a', { href: 'https://github.com/Randolh/Content_EduXP', target: '_blank', rel: 'noopener noreferrer', className: 'btn btn-secondary btn-lg' },
           icon('fa-brands fa-github'),
-          ' Conectar Tu Repositorio'
+          ' Ver Repositorio en GitHub'
         )
       ),
       el('div', { className: 'hero-stats' },
@@ -153,7 +153,7 @@ export async function renderHome(container) {
     featuredGrid.appendChild(
       el('div', { className: 'settings-box', style: { gridColumn: '1 / -1' } },
         el('p', { className: 'text-danger' }, icon('fa-solid fa-triangle-exclamation'), ` ${err.message}`),
-        el('a', { href: '#/settings', className: 'btn btn-secondary btn-sm' }, 'Configurar Fuente de Contenido')
+        el('button', { className: 'btn btn-secondary btn-sm', onClick: () => window.location.reload() }, 'Reintentar Carga')
       )
     );
   }

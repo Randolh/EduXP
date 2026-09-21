@@ -1,0 +1,11 @@
+{
+  "appName": "EduXP",
+  "sourceType": "github",
+  "github": {
+    "owner": "Randolh",
+    "repo": "Content_EduXP",
+    "branch": "main",
+    "useCdn": true
+  },
+  "localBasePath": "./content"
+}

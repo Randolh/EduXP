@@ -152,7 +152,7 @@ function updateFooterSourceBadge() {
     } else {
       badgeEl.textContent = `Fuente: Contenido Local Demo`;
       if (repoLink) {
-        repoLink.href = '#/settings';
+        repoLink.style.display = 'none';
       }
     }
   }
