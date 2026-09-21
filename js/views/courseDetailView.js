@@ -222,16 +222,18 @@ export async function renderCourseDetail(container, courseSlug) {
       )
     );
 
-    // Re-renderizar si cambia el estado de autenticación mientras está en esta vista
+    // Re-renderizar si cambia el estado de autenticación o progreso mientras está en esta vista
     const onAuthUpdate = () => {
       if (window.location.hash.startsWith(`#/course/${courseSlug}`)) {
         window.removeEventListener('eduxp:auth-changed', onAuthUpdate);
         window.removeEventListener('eduxp:cloud-synced', onAuthUpdate);
+        window.removeEventListener('eduxp:progress-updated', onAuthUpdate);
         renderCourseDetail(container, courseSlug);
       }
     };
     window.addEventListener('eduxp:auth-changed', onAuthUpdate, { once: true });
     window.addEventListener('eduxp:cloud-synced', onAuthUpdate, { once: true });
+    window.addEventListener('eduxp:progress-updated', onAuthUpdate, { once: true });
 
     // 2. Sección del Temario (Syllabus)
     const syllabusSection = el('section', { className: 'syllabus-container' },

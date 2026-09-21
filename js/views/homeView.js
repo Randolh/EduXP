@@ -117,16 +117,37 @@ export async function renderHome(container) {
     const courses = await api.getCourses();
     clearElement(featuredGrid);
 
-    if (!courses || courses.length === 0) {
-      featuredGrid.appendChild(
-        el('p', { className: 'text-muted', textContent: 'No hay cursos disponibles actualmente.' })
-      );
-      return;
+    function renderFeatured() {
+      clearElement(featuredGrid);
+      if (!courses || courses.length === 0) {
+        featuredGrid.appendChild(
+          el('p', { className: 'text-muted', textContent: 'No hay cursos disponibles actualmente.' })
+        );
+        return;
+      }
+
+      courses.slice(0, 3).forEach(course => {
+        featuredGrid.appendChild(createCourseCard(course));
+      });
     }
 
-    courses.slice(0, 3).forEach(course => {
-      featuredGrid.appendChild(createCourseCard(course));
-    });
+    renderFeatured();
+
+    // Escuchar cambios de progreso o autenticación para refrescar tarjetas de inicio
+    const onHomeStateChange = () => {
+      if (document.body.contains(featuredGrid)) {
+        renderFeatured();
+      } else {
+        window.removeEventListener('eduxp:progress-updated', onHomeStateChange);
+        window.removeEventListener('eduxp:auth-changed', onHomeStateChange);
+        window.removeEventListener('eduxp:cloud-synced', onHomeStateChange);
+      }
+    };
+
+    window.addEventListener('eduxp:progress-updated', onHomeStateChange);
+    window.addEventListener('eduxp:auth-changed', onHomeStateChange);
+    window.addEventListener('eduxp:cloud-synced', onHomeStateChange);
+
   } catch (err) {
     clearElement(featuredGrid);
     featuredGrid.appendChild(

@@ -92,7 +92,8 @@ function updateAuthNavbar() {
         type: 'button',
         className: 'user-dropdown-item text-danger',
         onClick: async () => {
-          await signOutUser();
+          dropdown.style.display = 'none';
+          await store.signOut();
           showToast('Has cerrado sesión.', 'info');
         }
       },

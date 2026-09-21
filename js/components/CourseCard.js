@@ -5,7 +5,7 @@
  */
 
 import { store } from '../store.js';
-import { el, icon } from '../utils/dom.js';
+import { el, icon, clearElement } from '../utils/dom.js';
 import { createBadge } from './Badge.js';
 import { createProgressBar } from './ProgressBar.js';
 
@@ -16,7 +16,6 @@ import { createProgressBar } from './ProgressBar.js';
  */
 export function createCourseCard(course) {
   const totalLessons = course.totalLessons || 0;
-  const stats = store.getCourseStats(course.slug, totalLessons);
   const badgeTheme = course.badgeColor || 'mint';
   const iconClass = course.icon || 'fa-solid fa-code';
 
@@ -26,14 +25,8 @@ export function createCourseCard(course) {
     createBadge({ text: course.level || 'Todos', theme: badgeTheme })
   );
 
-  // 2. Barra de Progreso
-  const progressBar = createProgressBar({
-    percentage: stats.percentage,
-    completed: stats.completed,
-    total: stats.total || totalLessons,
-    showLabels: true
-  });
-  progressBar.classList.add('card-progress-bar-wrap');
+  // 2. Contenedor Reactivo de Barra de Progreso
+  const progressContainer = el('div', { className: 'card-progress-bar-wrap' });
 
   // 3. Metadatos
   const metaRow = el('div', { className: 'card-meta-row' },
@@ -76,24 +69,56 @@ export function createCourseCard(course) {
     el('h3', { className: 'card-title', textContent: course.title }),
     el('p', { className: 'card-desc', textContent: course.description }),
     requirementsElement,
-    progressBar,
+    progressContainer,
     metaRow
   );
 
-  // 5. Botón de Acción
-  const actionBtnText = stats.completed > 0 ? 'Continuar Curso' : 'Comenzar Curso';
-  const footerAction = el('div', { className: 'card-footer-action' },
-    el('a', { href: `#/course/${course.slug}`, className: 'btn btn-primary btn-block btn-sm' },
+  // 6. Contenedor Reactivo de Botón de Acción
+  const footerAction = el('div', { className: 'card-footer-action' });
+
+  function renderDynamicState() {
+    const stats = store.getCourseStats(course.slug, totalLessons);
+    clearElement(progressContainer);
+    progressContainer.appendChild(createProgressBar({
+      percentage: stats.percentage,
+      completed: stats.completed,
+      total: stats.total || totalLessons,
+      showLabels: true
+    }));
+
+    clearElement(footerAction);
+    const actionBtnText = stats.completed > 0 ? 'Continuar Curso' : 'Comenzar Curso';
+    const actionBtn = el('a', { href: `#/course/${course.slug}`, className: 'btn btn-primary btn-block btn-sm' },
       icon('fa-solid fa-play'),
       document.createTextNode(` ${actionBtnText}`)
-    )
-  );
+    );
+    footerAction.appendChild(actionBtn);
+  }
 
-  return el('article', { className: 'course-card' },
+  renderDynamicState();
+
+  const card = el('article', { className: 'course-card' },
     headerBanner,
     cardBody,
     footerAction
   );
+
+  // Escuchar eventos de progreso, login, logout y sincronización de Supabase
+  const onStateChange = () => {
+    if (document.body.contains(card)) {
+      renderDynamicState();
+    } else {
+      window.removeEventListener('eduxp:progress-updated', onStateChange);
+      window.removeEventListener('eduxp:auth-changed', onStateChange);
+      window.removeEventListener('eduxp:cloud-synced', onStateChange);
+    }
+  };
+
+  window.addEventListener('eduxp:progress-updated', onStateChange);
+  window.addEventListener('eduxp:auth-changed', onStateChange);
+  window.addEventListener('eduxp:cloud-synced', onStateChange);
+
+  return card;
 }
 
 /**

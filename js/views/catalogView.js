@@ -113,4 +113,19 @@ export async function renderCatalog(container, queryParams = {}) {
       )
     );
   }
+
+  // Escuchar cambios de progreso o autenticación para refrescar el catálogo automáticamente
+  const onCatalogStateChange = () => {
+    if (document.body.contains(grid) && allCourses.length > 0) {
+      filterAndRender();
+    } else {
+      window.removeEventListener('eduxp:progress-updated', onCatalogStateChange);
+      window.removeEventListener('eduxp:auth-changed', onCatalogStateChange);
+      window.removeEventListener('eduxp:cloud-synced', onCatalogStateChange);
+    }
+  };
+
+  window.addEventListener('eduxp:progress-updated', onCatalogStateChange);
+  window.addEventListener('eduxp:auth-changed', onCatalogStateChange);
+  window.addEventListener('eduxp:cloud-synced', onCatalogStateChange);
 }

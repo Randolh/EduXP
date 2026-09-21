@@ -6,6 +6,7 @@
 import { el, icon, clearElement } from '../utils/dom.js';
 import { signUpWithUsername, signInWithUsername, getCleanUsername } from '../services/supabase.js';
 import { showToast } from './Toast.js';
+import { store } from '../store.js';
 
 let currentModal = null;
 
@@ -159,6 +160,10 @@ export function openAuthModal(initialTab = 'login', customMessage = null) {
       } else {
         authUser = await signInWithUsername(user, pass);
         showToast(`¡Sesión iniciada! Bienvenido de nuevo, ${getCleanUsername(authUser)}.`, 'success');
+      }
+
+      if (authUser) {
+        await store.handleUserSignedIn(authUser);
       }
 
       closeModal();

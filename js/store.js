@@ -9,7 +9,8 @@ import {
   getCleanUsername,
   fetchUserProgress,
   saveLessonToCloud,
-  syncLocalProgressToCloud
+  syncLocalProgressToCloud,
+  signOutUser
 } from './services/supabase.js';
 
 class Store {
@@ -86,6 +87,42 @@ class Store {
   }
 
   /**
+   * Maneja el inicio de sesión inmediato del usuario para actualizar la UI sin latencia
+   */
+  async handleUserSignedIn(user) {
+    if (!user) return;
+    this.currentUser = user;
+    this.data = this.load(user.id);
+    window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
+    window.dispatchEvent(new CustomEvent('eduxp:auth-changed', {
+      detail: { user: this.currentUser, event: 'SIGNED_IN' }
+    }));
+    await this.syncWithCloud(user);
+  }
+
+  /**
+   * Cierra la sesión inmediatamente y limpia el estado visual antes de la llamada de red
+   */
+  async signOut() {
+    this.currentUser = null;
+    this.data = this.getDefaultData();
+    window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
+    window.dispatchEvent(new CustomEvent('eduxp:auth-changed', {
+      detail: { user: null, event: 'SIGNED_OUT' }
+    }));
+
+    if (window.location.hash.includes('/lesson/')) {
+      window.location.hash = '#/courses';
+    }
+
+    try {
+      await signOutUser();
+    } catch (e) {
+      console.warn('Error en signOut:', e);
+    }
+  }
+
+  /**
    * Inicializa la escucha de sesión de Supabase y sincronización bidireccional
    */
   initSupabaseSync() {
@@ -94,9 +131,11 @@ class Store {
         this.currentUser = await getActiveUser();
         if (this.currentUser) {
           this.data = this.load(this.currentUser.id);
+          window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
           await this.syncWithCloud(this.currentUser);
         } else {
           this.data = this.getDefaultData();
+          window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
         }
       } catch (err) {
         console.warn('No se pudo inicializar la sesión con Supabase:', err);
@@ -114,6 +153,7 @@ class Store {
           // El usuario inició sesión o cambió de cuenta
           if (!previousUser || previousUser.id !== this.currentUser.id) {
             this.data = this.load(this.currentUser.id);
+            window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
             await this.syncWithCloud(this.currentUser);
           }
         } else {
@@ -159,11 +199,9 @@ class Store {
         }
       });
 
-      if (hasNewData) {
-        this.save();
-      }
+      this.save();
 
-      // 3. Subir cualquier lección completada localmente bajo este usuario
+      // Subir cualquier lección completada localmente bajo este usuario
       const localCompletedObj = {};
       for (const courseId in this.data.completedLessons) {
         (this.data.completedLessons[courseId] || []).forEach(lId => {
@@ -173,6 +211,7 @@ class Store {
 
       await syncLocalProgressToCloud(user.id, username, { completedLessons: localCompletedObj });
 
+      window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
       window.dispatchEvent(new CustomEvent('eduxp:cloud-synced', {
         detail: { user, totalCount: this.getTotalCompletedCount() }
       }));
@@ -182,6 +221,7 @@ class Store {
   }
 
   isLessonCompleted(courseId, lessonId) {
+    if (!this.currentUser) return false;
     const courseList = this.data.completedLessons[courseId];
     return Array.isArray(courseList) && courseList.includes(lessonId);
   }
@@ -233,10 +273,18 @@ class Store {
   }
 
   getLastVisited(courseId) {
+    if (!this.currentUser) return null;
     return this.data.lastVisited[courseId] || null;
   }
 
   getCourseStats(courseId, totalLessons = 0) {
+    if (!this.currentUser) {
+      return {
+        completed: 0,
+        total: totalLessons,
+        percentage: 0
+      };
+    }
     const completed = (this.data.completedLessons[courseId] || []).length;
     const percentage = totalLessons > 0 ? Math.round((completed / totalLessons) * 100) : 0;
     return {
@@ -247,6 +295,7 @@ class Store {
   }
 
   getTotalCompletedCount() {
+    if (!this.currentUser) return 0;
     let total = 0;
     for (const courseId in this.data.completedLessons) {
       total += (this.data.completedLessons[courseId] || []).length;
