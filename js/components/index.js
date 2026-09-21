@@ -14,3 +14,4 @@ export { createBreadcrumbs } from './Breadcrumbs.js';
 export { createSearchFilterBar } from './SearchFilterBar.js';
 export { showToast } from './Toast.js';
 export { openAuthModal } from './AuthModal.js';
+export { openCourseLimitModal } from './CourseLimitModal.js';

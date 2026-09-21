@@ -7,8 +7,7 @@
 import { api } from '../api.js';
 import { store } from '../store.js';
 import { el, clearElement, icon, createLoader } from '../utils/dom.js';
-import { createBadge, createProgressBar, createModuleCard } from '../components/index.js';
-import { openAuthModal } from '../components/AuthModal.js';
+import { createBadge, createProgressBar, createModuleCard, openAuthModal, openCourseLimitModal } from '../components/index.js';
 
 export async function renderCourseDetail(container, courseSlug) {
   clearElement(container);
@@ -200,6 +199,22 @@ export async function renderCourseDetail(container, courseSlug) {
               ctaBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 openAuthModal('login', 'Debes iniciar sesión para acceder a las lecciones y registrar tu progreso.');
+              });
+            } else {
+              ctaBtn.addEventListener('click', async (e) => {
+                const allCourses = await api.getCourses();
+                const check = store.canStartOrResumeCourse(courseSlug, allCourses);
+                if (!check.allowed) {
+                  e.preventDefault();
+                  const activeCourses = allCourses.filter(c => check.activeSlugs.includes(c.slug));
+                  openCourseLimitModal({
+                    courseToStart: course,
+                    activeCourses,
+                    onProceed: () => {
+                      window.location.hash = `#/course/${courseSlug}/lesson/${targetLesson.id}`;
+                    }
+                  });
+                }
               });
             }
 

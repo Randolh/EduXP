@@ -9,6 +9,7 @@ import { renderCatalog } from './views/catalogView.js';
 import { renderCourseDetail } from './views/courseDetailView.js';
 import { renderLesson } from './views/lessonView.js';
 import { renderSettings } from './views/settingsView.js';
+import { renderLibrary } from './views/libraryView.js';
 import { el, clearElement, icon } from './utils/dom.js';
 import { store } from './store.js';
 import { openAuthModal } from './components/AuthModal.js';
@@ -107,6 +108,8 @@ class Router {
         isActive = true;
       } else if (routeAttr === 'courses' && currentPath.startsWith('/course')) {
         isActive = true;
+      } else if (routeAttr === 'library' && currentPath.startsWith('/library')) {
+        isActive = true;
       } else if (routeAttr === 'settings' && currentPath.startsWith('/settings')) {
         isActive = true;
       }
@@ -178,6 +181,11 @@ export function initRouter() {
       path: '/course/:slug/lesson/:lessonId',
       requiresAuth: true,
       handler: (container, params) => renderLesson(container, params.slug, params.lessonId)
+    },
+    {
+      path: '/library',
+      requiresAuth: true,
+      handler: (container) => renderLibrary(container)
     },
     {
       path: '/settings',

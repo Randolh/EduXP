@@ -100,6 +100,41 @@
         "Desarrolladores con bases de Node.js que necesitan crear backends y APIs para clientes web o móviles.",
         "Cualquier programador que desee conectar aplicaciones frontend con un servidor seguro."
       ]
+    },
+    {
+      "id": "typescript-esencial",
+      "slug": "typescript-esencial",
+      "title": "TypeScript Esencial: Tipado Estático y Robustez",
+      "description": "Lleva tu código JavaScript al siguiente nivel. Aprende tipado estático, interfaces, types personalizados, genéricos y buenas prácticas modernas.",
+      "category": "frontend",
+      "level": "Intermedio",
+      "duration": "3.5 Horas",
+      "icon": "fa-solid fa-code",
+      "badgeColor": "cyan",
+      "totalLessons": 2,
+      "tags": ["TypeScript", "JavaScript", "Frontend", "Tipado Estático", "Interfaces"],
+      "requirements": [
+        "Conocimientos intermedios de JavaScript moderno (ES6+, funciones y objetos).",
+        "Familiaridad básica con herramientas de Node.js y npm."
+      ],
+      "objectives": [
+        "Comprender el sistema de tipos estático y cómo previene errores en tiempo de compilación.",
+        "Dominar la creación de Interfaces y Type Aliases para modelar datos complejos.",
+        "Utilizar Genéricos para crear funciones y componentes altamente reutilizables y seguros."
+      ],
+      "project": {
+        "title": "Sistema de Gestión de Entidades Tipadas",
+        "description": "Una biblioteca tipada para validar y transformar modelos de datos con validaciones estrictas en tiempo de compilación.",
+        "deliverables": [
+          "Configuración estricta de tsconfig.json",
+          "Modelos de datos con interfaces extensibles y tipos utilitarios (Partial, Omit, Pick)",
+          "Funciones genéricas para filtrado y ordenamiento seguro"
+        ]
+      },
+      "targetAudience": [
+        "Desarrolladores JavaScript que quieren escribir código más predecible y libre de bugs.",
+        "Programadores de React o Node.js que buscan profesionalizar sus bases de código con TypeScript."
+      ]
     }
   ]
 }

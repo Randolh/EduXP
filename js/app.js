@@ -88,6 +88,16 @@ function updateAuthNavbar() {
           document.createTextNode(' Progreso sincronizado')
         )
       ),
+      el('a', {
+        href: '#/library',
+        className: 'user-dropdown-item',
+        onClick: () => {
+          dropdown.style.display = 'none';
+        }
+      },
+        icon('fa-solid fa-book-bookmark text-mint'),
+        document.createTextNode(' Mi Biblioteca')
+      ),
       el('button', {
         type: 'button',
         className: 'user-dropdown-item text-danger',

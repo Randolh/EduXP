@@ -27,6 +27,7 @@ class Store {
     return {
       completedLessons: {}, // { [courseId]: [lessonId1, lessonId2] }
       lastVisited: {},      // { [courseId]: lessonId }
+      courseStatus: {},     // { [courseId]: 'in_progress' | 'on_hold' | 'completed' }
       favorites: []
     };
   }
@@ -53,7 +54,14 @@ class Store {
     try {
       const key = this.getStorageKey(userId);
       const raw = localStorage.getItem(key);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          ...this.getDefaultData(),
+          ...parsed,
+          courseStatus: parsed.courseStatus || {}
+        };
+      }
     } catch (e) {
       console.warn('Error leyendo progreso del usuario:', e);
     }
@@ -305,6 +313,110 @@ class Store {
 
   getCurrentUser() {
     return this.currentUser;
+  }
+
+  /**
+   * Obtiene el estado actual de un curso en la biblioteca del usuario
+   * @param {string} courseSlug
+   * @param {number} [totalLessons=0]
+   * @returns {'completed' | 'in_progress' | 'on_hold' | 'not_started'}
+   */
+  getCourseStatus(courseSlug, totalLessons = 0) {
+    if (!this.currentUser) return 'not_started';
+
+    const stats = this.getCourseStats(courseSlug, totalLessons);
+    if (totalLessons > 0 && stats.completed >= totalLessons) {
+      return 'completed';
+    }
+
+    const explicitStatus = this.data.courseStatus ? this.data.courseStatus[courseSlug] : null;
+    if (explicitStatus === 'on_hold') {
+      return 'on_hold';
+    }
+    if (explicitStatus === 'in_progress' || stats.completed > 0 || this.getLastVisited(courseSlug)) {
+      return 'in_progress';
+    }
+
+    return 'not_started';
+  }
+
+  /**
+   * Establece manualmente el estado de un curso (ej. 'in_progress' o 'on_hold')
+   * @param {string} courseSlug
+   * @param {'in_progress' | 'on_hold' | 'completed'} status
+   */
+  setCourseStatus(courseSlug, status) {
+    if (!this.currentUser) return false;
+    if (!this.data.courseStatus) this.data.courseStatus = {};
+    this.data.courseStatus[courseSlug] = status;
+    this.save();
+    window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
+    return true;
+  }
+
+  /**
+   * Retorna los slugs de cursos actualmente activos en progreso
+   * @param {Array} allCourses
+   * @returns {Array<string>}
+   */
+  getActiveCoursesInProgress(allCourses = []) {
+    if (!this.currentUser || !Array.isArray(allCourses)) return [];
+    const active = [];
+    allCourses.forEach(c => {
+      const status = this.getCourseStatus(c.slug, c.totalLessons || 0);
+      if (status === 'in_progress') {
+        active.push(c.slug);
+      }
+    });
+    return active;
+  }
+
+  /**
+   * Valida si el usuario puede iniciar o reanudar un curso sin exceder el límite de 3
+   * @param {string} courseSlug
+   * @param {Array} allCourses
+   * @returns {{ allowed: boolean, count: number, max: number, activeSlugs: string[] }}
+   */
+  canStartOrResumeCourse(courseSlug, allCourses = []) {
+    if (!this.currentUser) {
+      return { allowed: true, count: 0, max: 3, activeSlugs: [] };
+    }
+
+    const activeSlugs = this.getActiveCoursesInProgress(allCourses);
+
+    // Si ya está entre los cursos en progreso, continuar siempre es válido
+    if (activeSlugs.includes(courseSlug)) {
+      return { allowed: true, count: activeSlugs.length, max: 3, activeSlugs };
+    }
+
+    // Si ya hay 3 cursos en progreso y este es un 4to curso, bloquear
+    if (activeSlugs.length >= 3) {
+      return { allowed: false, count: activeSlugs.length, max: 3, activeSlugs };
+    }
+
+    return { allowed: true, count: activeSlugs.length, max: 3, activeSlugs };
+  }
+
+  /**
+   * Mueve un curso activo a 'En Espera' (on_hold) para liberar cupo
+   * @param {string} courseSlug
+   */
+  pauseCourseToHold(courseSlug) {
+    return this.setCourseStatus(courseSlug, 'on_hold');
+  }
+
+  /**
+   * Reanuda un curso a 'En Progreso', validando el cupo de 3
+   * @param {string} courseSlug
+   * @param {Array} allCourses
+   */
+  resumeCourse(courseSlug, allCourses = []) {
+    const check = this.canStartOrResumeCourse(courseSlug, allCourses);
+    if (!check.allowed) {
+      return { success: false, reason: 'limit_reached', ...check };
+    }
+    this.setCourseStatus(courseSlug, 'in_progress');
+    return { success: true, ...check };
   }
 
   clearAllProgress() {
