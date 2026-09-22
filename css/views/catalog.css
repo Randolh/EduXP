@@ -69,15 +69,17 @@
     padding: 1rem;
     gap: 0.85rem;
     margin-bottom: 1.5rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .filter-chips {
     flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: 0.5rem;
-    margin: 0 -0.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    max-width: 100%;
+    box-sizing: border-box;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }

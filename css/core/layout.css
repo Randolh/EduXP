@@ -5,14 +5,18 @@
 /* Contenedores */
 .container {
   max-width: 1240px;
+  width: 100%;
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
+  box-sizing: border-box;
 }
 
 .container-narrow {
   max-width: 960px;
+  width: 100%;
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
+  box-sizing: border-box;
 }
 
 /* Section Header Utilities */
@@ -164,6 +168,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .app-loader {
@@ -293,6 +299,11 @@
   .nav-container {
     padding: 0.75rem 1.25rem;
     gap: 1rem;
+  }
+
+  .navbar .logo-icon-wrap,
+  .brand-logo .logo-icon-wrap {
+    display: none !important;
   }
 
   .brand-tag {

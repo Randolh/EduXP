@@ -119,7 +119,8 @@
 .card-meta-row {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.15rem;
   margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid var(--border-subtle);

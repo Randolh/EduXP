@@ -452,6 +452,56 @@
 }
 
 @media (max-width: 640px) {
+  .library-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .library-hero-grid {
+    grid-template-columns: 1fr;
+    padding: 1.15rem 1rem;
+    gap: 1.25rem;
+    border-radius: var(--radius-md);
+  }
+
+  .library-title-wrap h1 {
+    font-size: 1.4rem;
+  }
+
+  .library-desc {
+    font-size: 0.85rem;
+  }
+
+  .library-slot-card {
+    min-width: 0;
+    width: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+
+  .library-tabs-bar {
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .library-tabs-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .library-card-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .library-card-actions .btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 110px;
+  }
+
   .library-grid {
     grid-template-columns: 1fr;
     min-height: auto;
