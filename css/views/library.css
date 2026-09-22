@@ -182,8 +182,10 @@
 /* Library Course Cards */
 .library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  min-height: 400px;
+  align-content: start;
 }
 
 .library-course-card {
@@ -398,6 +400,12 @@
 
 
 /* Responsive */
+@media (max-width: 992px) {
+  .library-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .library-hero-grid {
     grid-template-columns: 1fr;
@@ -408,8 +416,11 @@
   .library-slot-card {
     min-width: 100%;
   }
+}
 
+@media (max-width: 640px) {
   .library-grid {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 }
