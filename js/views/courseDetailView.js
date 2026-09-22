@@ -242,10 +242,8 @@ export async function renderCourseDetail(container, courseSlug) {
                 return;
               }
 
-              // Si estaba en espera, activarlo primero
-              if (isOnHold) {
-                store.setCourseStatus(courseSlug, 'in_progress', allCourses);
-              }
+              // Establecer explícitamente el curso a 'in_progress'
+              store.setCourseStatus(courseSlug, 'in_progress', allCourses);
 
               window.location.hash = `/course/${courseSlug}/lesson/${targetLesson.id}`;
             });

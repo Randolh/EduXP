@@ -284,6 +284,17 @@ class Store {
 
   setLastVisited(courseId, lessonId) {
     if (!this.currentUser) return;
+
+    // Remover el curso de la lista de cancelados si estaba ahí para que vuelva a estar activo
+    if (Array.isArray(this.data.cancelledCourses)) {
+      this.data.cancelledCourses = this.data.cancelledCourses.filter(s => s !== courseId);
+    }
+
+    if (!this.data.courseStatus) this.data.courseStatus = {};
+    if (this.data.courseStatus[courseId] !== 'completed' && this.data.courseStatus[courseId] !== 'on_hold') {
+      this.data.courseStatus[courseId] = 'in_progress';
+    }
+
     this.data.lastVisited[courseId] = lessonId;
     this.save();
   }
@@ -429,6 +440,11 @@ class Store {
     if (!this.currentUser) return false;
     if (!this.data.courseStatus) this.data.courseStatus = {};
 
+    // Quitar de cancelledCourses para permitir reactivar o comenzar el curso
+    if (Array.isArray(this.data.cancelledCourses)) {
+      this.data.cancelledCourses = this.data.cancelledCourses.filter(s => s !== courseSlug);
+    }
+
     if (status === 'in_progress' && Array.isArray(allCourses) && allCourses.length > 0) {
       const activeSlugs = this.getActiveCoursesInProgress(allCourses).filter(s => s !== courseSlug);
       if (activeSlugs.length >= 3) {
@@ -558,16 +574,18 @@ class Store {
    * El curso queda como 'not_started' y desaparece de la Biblioteca.
    * @param {string} courseSlug
    */
-  removeCourseFromLibrary(courseSlug) {
+  async removeCourseFromLibrary(courseSlug) {
     if (!this.currentUser) return false;
 
-    // Eliminar completedLessons (sin tocar la nube, no se borra progreso en este caso)
-    // Solo se limpia el estado local para que salga de la biblioteca
+    // Limpiar lecciones completadas y última visita localmente
+    if (this.data.completedLessons && this.data.completedLessons[courseSlug]) {
+      delete this.data.completedLessons[courseSlug];
+    }
     if (this.data.lastVisited && this.data.lastVisited[courseSlug]) {
       delete this.data.lastVisited[courseSlug];
     }
 
-    // Quitar de courseStatus (on_hold)
+    // Quitar de courseStatus (on_hold u otro estado)
     if (this.data.courseStatus && this.data.courseStatus[courseSlug]) {
       delete this.data.courseStatus[courseSlug];
     }
@@ -582,6 +600,13 @@ class Store {
 
     this.save();
     window.dispatchEvent(new CustomEvent('eduxp:progress-updated', { detail: this.data }));
+
+    try {
+      await resetCourseProgressInCloud(this.currentUser.id, courseSlug);
+    } catch (e) {
+      console.warn('Error eliminando curso de Supabase:', e);
+    }
+
     return true;
   }
 

@@ -234,6 +234,7 @@ export async function syncLocalProgressToCloud(userId, username, localStoreProgr
 export async function resetCourseProgressInCloud(userId, courseSlug) {
   if (!userId || !courseSlug) return;
   try {
+    // 1. Eliminar los registros de la tabla user_progress para este usuario y curso
     const { error } = await supabase
       .from('user_progress')
       .delete()
@@ -242,13 +243,15 @@ export async function resetCourseProgressInCloud(userId, courseSlug) {
 
     if (error) {
       console.warn('Aviso al eliminar registros en Supabase:', error.message);
-      // Fallback: marcar como no completado si delete estuviera bloqueado por RLS
-      await supabase
-        .from('user_progress')
-        .update({ completed: false, xp_earned: 0 })
-        .eq('user_id', userId)
-        .eq('course_slug', courseSlug);
     }
+
+    // 2. Asegurar que cualquier registro remanente pase a completed = false y xp = 0
+    await supabase
+      .from('user_progress')
+      .update({ completed: false, xp_earned: 0 })
+      .eq('user_id', userId)
+      .eq('course_slug', courseSlug);
+
   } catch (err) {
     console.warn('Error en resetCourseProgressInCloud:', err);
   }
