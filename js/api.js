@@ -14,15 +14,16 @@ class ContentApi {
     this.cache.clear();
   }
 
-  async fetchWithCache(url, isJson = true) {
+  async fetchWithCache(url, isJson = true, useMemoryCache = true) {
     const isLocal = configManager.config?.sourceType === 'local';
-    if (!isLocal && this.cache.has(url)) {
+    if (!isLocal && useMemoryCache && this.cache.has(url)) {
       return this.cache.get(url);
     }
 
     try {
-      // Añadir timestamp para evitar caché agresiva del navegador cuando sea necesario
-      const response = await fetch(url, {
+      // Añadir timestamp para evitar caché agresiva del navegador o CDN al consultar JSON
+      const fetchUrl = (isJson && !isLocal) ? `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}` : url;
+      const response = await fetch(fetchUrl, {
         headers: {
           'Accept': isJson ? 'application/json' : 'text/plain, text/markdown'
         }
@@ -33,7 +34,9 @@ class ContentApi {
       }
 
       const data = isJson ? await response.json() : await response.text();
-      this.cache.set(url, data);
+      if (useMemoryCache) {
+        this.cache.set(url, data);
+      }
       return data;
     } catch (error) {
       console.error(`Error al obtener recurso desde: ${url}`, error);
@@ -47,7 +50,7 @@ class ContentApi {
   async getCourses() {
     const url = configManager.getCoursesIndexUrl();
     try {
-      const data = await this.fetchWithCache(url, true);
+      const data = await this.fetchWithCache(url, true, false);
       return data.courses || [];
     } catch (error) {
       throw new Error(`No se pudo cargar el catálogo de cursos. Verifica la fuente o conexión (${url}).`);

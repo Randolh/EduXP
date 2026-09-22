@@ -46,6 +46,10 @@ class ConfigManager {
   }
 
   getCoursesIndexUrl() {
+    if (this.config.sourceType === 'github') {
+      const { owner, repo, branch } = this.config.github;
+      return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/courses.json`;
+    }
     return `${this.getBaseUrl()}/courses.json`;
   }
 

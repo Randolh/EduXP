@@ -122,7 +122,7 @@ export async function renderHome(container) {
         return;
       }
 
-      courses.slice(0, 3).forEach(course => {
+      courses.slice(0, 6).forEach(course => {
         featuredGrid.appendChild(createCourseCard(course));
       });
     }

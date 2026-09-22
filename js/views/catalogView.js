@@ -15,7 +15,8 @@ export async function renderCatalog(container, queryParams = {}) {
     { id: 'all', label: 'Todos' },
     { id: 'frontend', label: 'Frontend' },
     { id: 'backend', label: 'Backend' },
-    { id: 'api', label: 'APIs & Servicios' }
+    { id: 'api', label: 'APIs & Servicios' },
+    { id: 'tools', label: 'Herramientas' }
   ];
 
   let currentCategory = queryParams.category || 'all';
