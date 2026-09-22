@@ -163,15 +163,36 @@ function setupMobileNav() {
   const navLinks = document.getElementById('nav-links');
 
   if (toggleBtn && navLinks) {
-    toggleBtn.addEventListener('click', () => {
-      navLinks.classList.toggle('is-open');
-    });
+    let backdrop = document.getElementById('nav-backdrop');
+    if (!backdrop) {
+      backdrop = el('div', { className: 'nav-backdrop', id: 'nav-backdrop' });
+      document.body.appendChild(backdrop);
+    }
+
+    const closeNav = () => {
+      navLinks.classList.remove('is-open');
+      backdrop.classList.remove('is-open');
+      const iconEl = toggleBtn.querySelector('i');
+      if (iconEl) {
+        iconEl.className = 'fa-solid fa-bars';
+      }
+    };
+
+    const toggleNav = () => {
+      const isOpen = navLinks.classList.toggle('is-open');
+      backdrop.classList.toggle('is-open', isOpen);
+      const iconEl = toggleBtn.querySelector('i');
+      if (iconEl) {
+        iconEl.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+      }
+    };
+
+    toggleBtn.addEventListener('click', toggleNav);
+    backdrop.addEventListener('click', closeNav);
 
     // Cerrar menú al hacer clic en un enlace
     navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        navLinks.classList.remove('is-open');
-      });
+      link.addEventListener('click', closeNav);
     });
   }
 }

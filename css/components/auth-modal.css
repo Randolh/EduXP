@@ -306,15 +306,34 @@
 /* Adaptación para dispositivos móviles estrechos (< 480px) */
 @media (max-width: 480px) {
   .auth-modal-overlay {
-    padding: 0.75rem;
-    align-items: flex-end; /* Efecto bottom sheet en móviles */
+    padding: 0.5rem;
+    align-items: center;
+    justify-content: center;
   }
 
   .auth-modal-window {
+    width: 100%;
     max-width: 100%;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    max-height: 90vh;
+    max-height: calc(100vh - 1rem);
+    max-height: calc(100dvh - 1rem);
+    border-radius: var(--radius-lg);
+    margin: auto;
+  }
+
+  .auth-modal-header {
+    padding: 1rem 1.15rem 0.75rem;
+  }
+
+  .auth-modal-title {
+    font-size: 1.1rem;
+  }
+
+  .auth-modal-subtitle {
+    font-size: 0.775rem;
+  }
+
+  .auth-modal-body {
+    padding: 1rem 1.15rem;
   }
 }
 

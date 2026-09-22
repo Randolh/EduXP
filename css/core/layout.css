@@ -15,6 +15,33 @@
   padding: 2.5rem 1.5rem;
 }
 
+/* Section Header Utilities */
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.section-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  line-height: 1.5;
+}
+
 /* ==========================================================================
    Navbar
    ========================================================================== */
@@ -263,36 +290,149 @@
 
 /* Responsive Layout */
 @media (max-width: 860px) {
-  .nav-links {
+  .nav-container {
+    padding: 0.75rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .brand-tag {
     display: none;
+  }
+
+  #repo-link {
+    display: none !important;
+  }
+
+  .progress-pill-text {
+    display: none;
+  }
+
+  .progress-pill {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  .nav-links {
+    display: flex;
     position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
+    top: calc(100% + 0.5rem);
+    left: 1rem;
+    right: 1rem;
     background: var(--bg-surface-elevated);
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 1rem 1.5rem;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
     flex-direction: column;
     align-items: stretch;
-    box-shadow: var(--shadow-lg);
+    gap: 0.4rem;
+    box-shadow: var(--shadow-lg), 0 16px 36px rgba(0, 0, 0, 0.6);
+    z-index: 101;
+    transform: translateY(-12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   }
 
   .nav-links.is-open {
-    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav-link {
+    padding: 0.85rem 1.15rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
   }
 
   .mobile-toggle {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    font-size: 1.1rem;
+    color: var(--text-main);
+    transition: all var(--transition-fast);
   }
 
-  .footer-container {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+  .mobile-toggle:active {
+    transform: scale(0.92);
+  }
+
+  /* Backdrop Overlay */
+  .nav-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(4, 9, 18, 0.7);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .nav-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .footer-container-simple {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .footer-brand-simple {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-simple-text {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 0.5rem;
+  }
+
+  .footer-social-links {
+    justify-content: center;
   }
 
   .footer-bottom-container {
     flex-direction: column;
     gap: 0.75rem;
     text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .container,
+  .container-narrow {
+    padding: 1.5rem 1rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+  }
+
+  .section-desc {
+    font-size: 0.875rem;
   }
 }

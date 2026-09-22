@@ -398,6 +398,39 @@
   gap: 0.5rem;
 }
 
+@media (max-width: 520px) {
+  .course-limit-modal-window {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .limit-item-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .limit-item-title {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .limit-cancel-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .limit-confirm-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .limit-confirm-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 
 /* Responsive */
 @media (max-width: 992px) {
