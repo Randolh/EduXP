@@ -31,6 +31,20 @@
   transform: translateY(-2px);
 }
 
+.btn-continue {
+  background: linear-gradient(135deg, var(--mint-primary) 0%, #22d3ee 100%);
+  color: var(--bg-deep);
+  font-weight: 800;
+  box-shadow: 0 4px 18px rgba(0, 245, 160, 0.35);
+  border: 1px solid rgba(0, 245, 160, 0.6);
+}
+
+.btn-continue:hover {
+  background: linear-gradient(135deg, var(--mint-hover) 0%, #06b6d4 100%);
+  box-shadow: 0 6px 24px rgba(34, 211, 238, 0.5);
+  transform: translateY(-2px);
+}
+
 .btn-secondary {
   background: var(--bg-surface-elevated);
   color: var(--text-main);

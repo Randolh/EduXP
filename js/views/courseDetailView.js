@@ -33,12 +33,19 @@ export async function renderCourseDetail(container, courseSlug) {
     });
 
     const stats = store.getCourseStats(courseSlug, totalLessonsCount);
-    const lastVisited = store.getLastVisited(courseSlug);
+    const lastVisitedId = store.getLastVisited(courseSlug);
     const isAuthenticated = store.isAuthenticated();
 
-    const targetLesson = lastVisited
-      ? findLessonById(course.modules, lastVisited) || nextUncompletedLesson || firstLesson
-      : nextUncompletedLesson || firstLesson;
+    // Determinar la lección objetivo para el botón:
+    // 1. Si lastVisitedId existe Y NO está completada, usar esa lección.
+    // 2. Si lastVisitedId ya está completada o no existe, usar la siguiente lección no leída (nextUncompletedLesson).
+    // 3. Si todas las lecciones están completadas, usar la primera (firstLesson) para repasar.
+    let targetLesson = null;
+    if (lastVisitedId && !store.isLessonCompleted(courseSlug, lastVisitedId)) {
+      targetLesson = findLessonById(course.modules, lastVisitedId) || nextUncompletedLesson || firstLesson;
+    } else {
+      targetLesson = nextUncompletedLesson || firstLesson;
+    }
 
     const badgeTheme = course.badgeColor || 'mint';
 
@@ -189,21 +196,27 @@ export async function renderCourseDetail(container, courseSlug) {
 
             const courseStatus = store.getCourseStatus(courseSlug, totalLessonsCount);
             const isOnHold = courseStatus === 'on_hold';
+            const isFullyCompleted = stats.completed === totalLessonsCount && totalLessonsCount > 0;
+            const hasStarted = stats.completed > 0 || (lastVisitedId && !store.isLessonCompleted(courseSlug, lastVisitedId));
 
-            // Determinar label e ícono del botón según estado
+            // Determinar label, ícono y clase visual del botón según estado
             let ctaBtnLabel, ctaBtnIcon, ctaBtnClass;
             if (!isAuthenticated) {
               ctaBtnLabel = 'Iniciar Sesión para Comenzar';
               ctaBtnIcon  = 'fa-solid fa-lock';
               ctaBtnClass = 'btn btn-primary btn-block btn-lg';
             } else if (isOnHold) {
-              ctaBtnLabel = 'Activar y Comenzar';
+              ctaBtnLabel = 'Activar y Continuar';
               ctaBtnIcon  = 'fa-solid fa-play';
               ctaBtnClass = 'btn btn-secondary btn-block btn-lg';
-            } else if (stats.completed > 0) {
-              ctaBtnLabel = 'Continuar Lección';
-              ctaBtnIcon  = 'fa-solid fa-play';
-              ctaBtnClass = 'btn btn-primary btn-block btn-lg';
+            } else if (isFullyCompleted) {
+              ctaBtnLabel = 'Repasar Curso Completado';
+              ctaBtnIcon  = 'fa-solid fa-rotate-left';
+              ctaBtnClass = 'btn btn-outline btn-block btn-lg';
+            } else if (hasStarted) {
+              ctaBtnLabel = 'Continuar Aprendiendo';
+              ctaBtnIcon  = 'fa-solid fa-circle-play';
+              ctaBtnClass = 'btn btn-continue btn-block btn-lg';
             } else {
               ctaBtnLabel = 'Comenzar Ahora';
               ctaBtnIcon  = 'fa-solid fa-play';
@@ -236,7 +249,9 @@ export async function renderCourseDetail(container, courseSlug) {
                   courseToStart: course,
                   activeCourses,
                   onProceed: () => {
-                    window.location.hash = `/course/${courseSlug}/lesson/${targetLesson.id}`;
+                    if (targetLesson) {
+                      window.location.hash = `/course/${courseSlug}/lesson/${targetLesson.id}`;
+                    }
                   }
                 });
                 return;
@@ -245,11 +260,12 @@ export async function renderCourseDetail(container, courseSlug) {
               // Establecer explícitamente el curso a 'in_progress'
               store.setCourseStatus(courseSlug, 'in_progress', allCourses);
 
-              window.location.hash = `/course/${courseSlug}/lesson/${targetLesson.id}`;
+              if (targetLesson) {
+                window.location.hash = `/course/${courseSlug}/lesson/${targetLesson.id}`;
+              }
             });
 
             const isOnWatchlist = isOnHold;
-
 
             const watchlistBtn = el('button', {
               type: 'button',
@@ -298,6 +314,15 @@ export async function renderCourseDetail(container, courseSlug) {
               el('span', { className: 'watchlist-label' }, isOnWatchlist ? ' Guardado en Espera' : ' Guardar para después')
             );
 
+            let subtextHint = 'Progreso aislado y seguro en la nube';
+            if (isAuthenticated) {
+              if (isFullyCompleted) {
+                subtextHint = '¡Curso completado al 100%! Puedes repasar cualquier lección.';
+              } else if (targetLesson) {
+                subtextHint = `${hasStarted ? 'Siguiente lección no leída:' : 'Primera lección:'} ${targetLesson.title}`;
+              }
+            }
+
             return el('div', {},
               ctaBtn,
               isAuthenticated ? watchlistBtn : null,
@@ -310,7 +335,7 @@ export async function renderCourseDetail(container, courseSlug) {
                 }
               },
                 icon(isAuthenticated ? 'fa-regular fa-compass' : 'fa-solid fa-shield-halved', 'text-mint'),
-                ` ${isAuthenticated ? `Siguiente: ${targetLesson.title}` : ' Progreso aislado y seguro en la nube'}`
+                ` ${subtextHint}`
               )
             );
           })()
