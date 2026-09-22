@@ -63,7 +63,7 @@ class ContentApi {
   async getCourse(slug) {
     const url = configManager.getCourseManifestUrl(slug);
     try {
-      const course = await this.fetchWithCache(url, true);
+      const course = await this.fetchWithCache(url, true, false);
       return course;
     } catch (error) {
       throw new Error(`No se encontró el curso "${slug}".`);
@@ -76,7 +76,7 @@ class ContentApi {
   async getLessonMarkdown(courseSlug, lessonFilePath) {
     const url = configManager.getLessonMarkdownUrl(courseSlug, lessonFilePath);
     try {
-      const markdown = await this.fetchWithCache(url, false);
+      const markdown = await this.fetchWithCache(url, false, false);
       return markdown;
     } catch (error) {
       throw new Error(`No se pudo cargar el contenido de la lección (${lessonFilePath}).`);

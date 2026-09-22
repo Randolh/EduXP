@@ -9,7 +9,7 @@ const DEFAULT_CONFIG = {
     owner: 'Randolh',
     repo: 'Content_EduXP',
     branch: 'main',
-    useCdn: true
+    useCdn: false
   },
   localBasePath: './content'
 };
