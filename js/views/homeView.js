@@ -96,10 +96,6 @@ export async function renderHome(container) {
     ),
     el('div', { className: 'course-grid', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' } },
       el('div', { className: 'settings-box', style: { marginBottom: '0' } },
-        el('h3', {}, icon('fa-solid fa-file-lines', 'text-mint'), ' Desacoplado en Markdown'),
-        el('p', { textContent: 'Todo el contenido de las lecciones vive en archivos .md en repositorios de GitHub. Puedes bifurcar (fork), clonar o crear tus propios cursos sin tocar el código fuente del sitio.' })
-      ),
-      el('div', { className: 'settings-box', style: { marginBottom: '0' } },
         el('h3', {}, icon('fa-solid fa-laptop-code', 'text-cyan'), ' Cero Frameworks Pesados'),
         el('p', { textContent: 'Construido 100% en JavaScript Vanilla, HTML5 y CSS3. Carga ultra rápida, cero pasos de compilación y compatibilidad total con GitHub Pages.' })
       ),
