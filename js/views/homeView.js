@@ -113,6 +113,18 @@ export async function renderHome(container) {
     const courses = await api.getCourses();
     clearElement(featuredGrid);
 
+    // Seleccionar 3 cursos aleatorios de todos los disponibles
+    const getRandomItems = (array, count) => {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy.slice(0, count);
+    };
+
+    const featuredCourses = getRandomItems(courses, 3);
+
     function renderFeatured() {
       clearElement(featuredGrid);
       if (!courses || courses.length === 0) {
@@ -122,7 +134,7 @@ export async function renderHome(container) {
         return;
       }
 
-      courses.slice(0, 6).forEach(course => {
+      featuredCourses.forEach(course => {
         featuredGrid.appendChild(createCourseCard(course));
       });
     }
