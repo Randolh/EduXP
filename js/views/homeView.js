@@ -26,13 +26,13 @@ export async function renderHome(container) {
         })
       ),
       el('h1', { className: 'hero-title' },
-        'Aprende Desarrollo Web Moderno ',
+        'Aprende Desarrollo ',
         el('br'),
-        el('span', { className: 'hero-highlight', textContent: 'Con Código Práctico y Markdown' })
+        el('span', { className: 'hero-highlight', textContent: 'Con Lecciones Prácticas' })
       ),
       el('p', {
         className: 'hero-subtitle',
-        textContent: 'Cursos 100% gratuitos y de código abierto sobre React, Node.js, Express y más. Sin muros de pago, con lecciones actualizadas directamente desde GitHub.'
+        textContent: 'Guías 100% gratuitas y libres para adentrarte en cualquier tecnología, herramienta o lenguaje de programación. Sin muros de pago y con lecciones prácticas.'
       }),
       el('div', { className: 'hero-actions' },
         el('a', { href: '#/courses', className: 'btn btn-primary btn-lg' },
