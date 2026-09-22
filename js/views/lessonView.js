@@ -128,19 +128,26 @@ export async function renderLesson(container, courseSlug, lessonId) {
     });
 
     course.modules.forEach((mod, modIdx) => {
-      const optGroup = el('optgroup', { label: `Módulo ${modIdx + 1}: ${mod.title}` });
+      const cleanModTitle = (mod.title || '').toLowerCase().startsWith('módulo') || (mod.title || '').toLowerCase().startsWith('modulo')
+        ? mod.title
+        : `Módulo ${modIdx + 1}: ${mod.title}`;
+
+      const optGroup = el('optgroup', { label: cleanModTitle });
       mod.lessons.forEach(les => {
         const lesCompleted = store.isLessonCompleted(courseSlug, les.id);
+        const isCurrent = les.id === lessonId;
         const prefix = lesCompleted ? '✓ ' : '• ';
         const opt = el('option', {
           value: les.id,
-          selected: les.id === lessonId,
+          selected: isCurrent,
           textContent: `${prefix}${les.title} (${les.duration || '10 min'})`
         });
         optGroup.appendChild(opt);
       });
       mobileSelect.appendChild(optGroup);
     });
+
+    mobileSelect.value = lessonId;
 
     const mobileDropdownWrap = el('div', { className: 'mobile-modules-dropdown-wrap' },
       el('label', { className: 'mobile-select-label' },
@@ -258,6 +265,13 @@ export async function renderLesson(container, courseSlug, lessonId) {
           iconWrap.className = 'sidebar-lesson-icon';
           iconWrap.appendChild(icon('fa-solid fa-play'));
         }
+      }
+
+      // Actualizar opción en el selector móvil (<select>)
+      const selectOption = mobileSelect.querySelector(`option[value="${lessonId}"]`);
+      if (selectOption) {
+        const prefix = isNowCompleted ? '✓ ' : '• ';
+        selectOption.textContent = `${prefix}${currentLesson.title} (${currentLesson.duration || '10 min'})`;
       }
 
       // Actualizar barra de progreso modular
