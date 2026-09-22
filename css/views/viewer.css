@@ -7,6 +7,11 @@
   display: flex;
   min-height: calc(100vh - 70px);
   width: 100%;
+  align-items: flex-start;
+}
+
+.mobile-modules-dropdown-wrap {
+  display: none;
 }
 
 /* ==========================================================================
@@ -412,14 +417,65 @@
     height: auto;
     position: relative;
     top: 0;
-    max-height: 220px;
+    max-height: none;
     border-right: none;
     border-bottom: 1px solid var(--border-medium);
-    transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow-sm);
   }
 
-  .viewer-sidebar.is-open {
-    max-height: 500px;
+  .mobile-modules-dropdown-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .mobile-select-label {
+    font-size: 0.775rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .mobile-lesson-select {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-size: 0.875rem;
+    font-family: inherit;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+  }
+
+  .mobile-lesson-select:focus {
+    border-color: var(--mint-primary);
+  }
+
+  .mobile-lesson-select optgroup {
+    background: var(--bg-surface);
+    color: var(--mint-primary);
+    font-weight: 700;
+  }
+
+  .mobile-lesson-select option {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 0.5rem;
+  }
+
+  .viewer-modules-tree {
+    display: none;
   }
 
   .viewer-main {

@@ -116,6 +116,40 @@ export async function renderLesson(container, courseSlug, lessonId) {
       )
     );
 
+    // Crear Selector Dropdown Móvil (<select>) de Lecciones
+    const mobileSelect = el('select', {
+      className: 'mobile-lesson-select',
+      ariaLabel: 'Seleccionar lección del curso',
+      onChange: (e) => {
+        if (e.target.value) {
+          window.location.hash = `#/course/${courseSlug}/lesson/${e.target.value}`;
+        }
+      }
+    });
+
+    course.modules.forEach((mod, modIdx) => {
+      const optGroup = el('optgroup', { label: `Módulo ${modIdx + 1}: ${mod.title}` });
+      mod.lessons.forEach(les => {
+        const lesCompleted = store.isLessonCompleted(courseSlug, les.id);
+        const prefix = lesCompleted ? '✓ ' : '• ';
+        const opt = el('option', {
+          value: les.id,
+          selected: les.id === lessonId,
+          textContent: `${prefix}${les.title} (${les.duration || '10 min'})`
+        });
+        optGroup.appendChild(opt);
+      });
+      mobileSelect.appendChild(optGroup);
+    });
+
+    const mobileDropdownWrap = el('div', { className: 'mobile-modules-dropdown-wrap' },
+      el('label', { className: 'mobile-select-label' },
+        icon('fa-solid fa-list-ul text-mint'),
+        document.createTextNode(' Cambiar de lección (Temario):')
+      ),
+      mobileSelect
+    );
+
     const sidebar = el('aside', { className: 'viewer-sidebar', id: 'viewer-sidebar' },
       el('div', { className: 'viewer-sidebar-header' },
         el('a', { href: `#/course/${courseSlug}`, className: 'back-to-course-link' },
@@ -123,7 +157,8 @@ export async function renderLesson(container, courseSlug, lessonId) {
           ' Volver al curso'
         ),
         el('h2', { className: 'viewer-course-title', textContent: course.title }),
-        sidebarProgressBar
+        sidebarProgressBar,
+        mobileDropdownWrap
       ),
       modulesTree
     );
