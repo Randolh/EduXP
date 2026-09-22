@@ -161,6 +161,42 @@ export async function renderCourseDetail(container, courseSlug) {
                   )
                 )
               )
+            : null,
+
+          // 5. Videos Recomendados y Recursos Multimedia
+          (course.videos && course.videos.length > 0) || (course.recommendedVideos && course.recommendedVideos.length > 0)
+            ? (() => {
+                const videoList = course.videos || course.recommendedVideos;
+                return el('div', { className: 'course-videos-box' },
+                  el('div', { className: 'videos-header' },
+                    icon('fa-brands fa-youtube'),
+                    el('span', { textContent: 'Videos Recomendados y Recursos Multimedia' })
+                  ),
+                  el('div', { className: 'videos-list' },
+                    videoList.map(video =>
+                      el('a', {
+                        href: video.url || video.link || '#',
+                        target: '_blank',
+                        rel: 'noopener noreferrer',
+                        className: 'video-card-item',
+                        title: `Ver "${video.title || 'video'}" en una nueva pestaña`
+                      },
+                        el('div', { className: 'video-icon-wrap' },
+                          icon('fa-solid fa-play')
+                        ),
+                        el('div', { className: 'video-info' },
+                          el('span', { className: 'video-title', textContent: video.title || 'Video Recomendado' }),
+                          el('div', { className: 'video-meta' },
+                            video.channel ? el('span', {}, icon('fa-regular fa-user'), ` ${video.channel}`) : null,
+                            video.duration ? el('span', {}, icon('fa-regular fa-clock'), ` ${video.duration}`) : null
+                          )
+                        ),
+                        icon('fa-solid fa-arrow-up-right-from-square', 'video-external-icon')
+                      )
+                    )
+                  )
+                );
+              })()
             : null
         ),
 
