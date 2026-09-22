@@ -83,25 +83,30 @@ export async function renderHome(container) {
     featuredGrid
   );
 
-  // 3. Beneficios
+  // 3. Beneficios y Características
   const benefitsSection = el('section', {
     className: 'container',
     style: { paddingTop: '1rem', paddingBottom: '4rem' }
   },
     el('div', { className: 'section-header' },
       el('h2', { className: 'section-title' },
-        icon('fa-solid fa-shield-halved', 'text-cyan'),
-        ' ¿Por qué elegir EduXP?'
-      )
+        icon('fa-solid fa-star', 'text-cyan'),
+        ' ¿Por qué aprender en EduXP?'
+      ),
+      el('p', { className: 'section-desc', textContent: 'Una plataforma enfocada en ofrecerte la mejor experiencia de aprendizaje en tecnología.' })
     ),
     el('div', { className: 'course-grid', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' } },
       el('div', { className: 'settings-box', style: { marginBottom: '0' } },
-        el('h3', {}, icon('fa-solid fa-laptop-code', 'text-cyan'), ' Cero Frameworks Pesados'),
-        el('p', { textContent: 'Construido 100% en JavaScript Vanilla, HTML5 y CSS3. Carga ultra rápida, cero pasos de compilación y compatibilidad total con GitHub Pages.' })
+        el('h3', {}, icon('fa-solid fa-graduation-cap', 'text-mint'), ' Aprende a tu Ritmo'),
+        el('p', { textContent: 'Accede a contenidos 100% gratuitos y libres, sin restricciones de tiempo ni barreras para empezar a formarte hoy mismo.' })
       ),
       el('div', { className: 'settings-box', style: { marginBottom: '0' } },
-        el('h3', {}, icon('fa-solid fa-chart-line', 'text-mint'), ' Progreso en Tu Navegador'),
-        el('p', { textContent: 'Tus avances y lecciones completadas se guardan de forma privada en tu navegador mediante LocalStorage. Continúa donde lo dejaste en cualquier momento.' })
+        el('h3', {}, icon('fa-solid fa-code', 'text-cyan'), ' Lecciones Prácticas'),
+        el('p', { textContent: 'Guías estructuradas paso a paso con código real y ejercicios diseñados para aplicar tus conocimientos desde el primer día.' })
+      ),
+      el('div', { className: 'settings-box', style: { marginBottom: '0' } },
+        el('h3', {}, icon('fa-solid fa-chart-line', 'text-mint'), ' Control de tu Progreso'),
+        el('p', { textContent: 'Sigue tu avance en cada curso y lección completada, permitiéndote retomar el estudio exactamente donde lo dejaste.' })
       )
     )
   );
