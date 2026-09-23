@@ -28,7 +28,7 @@ export function openAuthModal(initialTab = 'login', customMessage = null) {
   const usernameInput = el('input', {
     type: 'text',
     className: 'auth-input-field',
-    placeholder: 'ej. randolh',
+    placeholder: 'ej. Juan21',
     required: true,
     autocomplete: 'username'
   });
